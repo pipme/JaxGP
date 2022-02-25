@@ -5,11 +5,11 @@ import jax
 import jax.numpy as jnp
 from chex import dataclass
 
-from gpjax.likelihoods import Gaussian, Likelihood
+from jaxgp.likelihoods import Gaussian, Likelihood
 from .utils import concat_dictionaries
 
 from typing import Optional, Dict, NamedTuple
-from gps import GPrior
+from .gps import GPrior
 from .abstractions import InducingPoints
 from collections import namedtuple
 from .types import Array, Dataset

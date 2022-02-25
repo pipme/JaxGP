@@ -6,9 +6,9 @@ from typing import Callable, Optional, Dict
 from .types import Array, Dataset
 from .likelihoods import Likelihood, Gaussian, NonConjugateLikelihoods
 from .gps import GP, GPrior
-from utils import concat_dictionaries
+from .utils import concat_dictionaries
 from chex import dataclass
-from .parameters import copy_dict_structure, evaluate_priors, transform
+from .parameters import copy_dict_structure
 from jax.scipy.linalg import cho_factor, cho_solve, cholesky
 from .kernels import gram, cross_covariance
 
@@ -122,3 +122,16 @@ class ConjugatePosterior(Posterior):
             )
 
         return mll
+
+
+def construct_posterior(
+    prior: GPrior, likelihood: Likelihood, method: str = "exact"
+) -> Posterior:
+    if method == "exact":
+        assert isinstance(likelihood, Gaussian)
+        PosteriorGP = ConjugatePosterior
+    else:
+        raise NotImplementedError(
+            f"No posterior implemented for {likelihood.name} likelihood"
+        )
+    return PosteriorGP(prior=prior, likelihood=likelihood)

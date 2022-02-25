@@ -11,7 +11,6 @@ from .types import Array, Dataset
 from .kernels import Kernel, cross_covariance, gram
 from .means import MeanFunction, Zero
 from .likelihoods import Likelihood, Gaussian, NonConjugateLikelihoods
-from .posteriors import Posterior, ConjugatePosterior
 
 
 @dataclass
@@ -69,16 +68,3 @@ class GPrior(GP):
         return tfd.MultivariateNormalTriL(
             mu.squeeze(), linalg.cholesky(sigma, lower=True)
         )
-
-
-def construct_posterior(
-    prior: GPrior, likelihood: Likelihood, method: str = "exact"
-) -> Posterior:
-    if method == "exact":
-        assert isinstance(likelihood, Gaussian)
-        PosteriorGP = ConjugatePosterior
-    else:
-        raise NotImplementedError(
-            f"No posterior implemented for {likelihood.name} likelihood"
-        )
-    return PosteriorGP(prior=prior, likelihood=likelihood)

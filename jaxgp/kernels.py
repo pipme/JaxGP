@@ -97,7 +97,7 @@ class RBF(Kernel):
         return K.squeeze()
 
 
-@partial(jit, static_argnames="diag")
+# @partial(jit, static_argnames="diag")
 def gram(
     kernel: Kernel, inputs: Array, params: dict, diag: bool = False
 ) -> Array:
@@ -109,7 +109,6 @@ def gram(
         )(inputs)
 
 
-@jit
 def cross_covariance(
     kernel: Kernel, x: Array, y: Array, params: dict
 ) -> Array:

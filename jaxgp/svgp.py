@@ -3,7 +3,7 @@ import jax
 import jax.numpy as jnp
 from chex import dataclass
 
-from gpjax.likelihoods import Gaussian, Likelihood
+from jaxgp.likelihoods import Gaussian, Likelihood
 from .utils import concat_dictionaries
 
 from typing import Optional, Dict, NamedTuple

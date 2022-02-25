@@ -3,9 +3,9 @@ import imp
 
 import jax.numpy as jnp
 from jax import random
-import gpfun as gpf
+import jaxgp as jgp
 import numpy as np
-from gpfun.sgpr import SGPR
+from jaxgp.sgpr import SGPR
 
 # @dataclass(frozen=True)
 # class Datum:
@@ -29,15 +29,15 @@ def test_sgpr_qu():
     Z = Datum().Z
     y = np.sin(X @ np.array([[-1.4], [0.5]])) + 0.5 * rng.randn(len(X), 1)
 
-    train_data = gpf.Dataset(X=X, y=y)
-    kernel = gpf.RBF(active_dims=[0, 1])
+    train_data = jgp.Dataset(X=X, y=y)
+    kernel = jgp.RBF(active_dims=[0, 1])
     sgpr = SGPR(
         train_data=train_data,
-        gprior=gpf.GPrior(kernel),
-        likelihood=gpf.Gaussian(num_datapoints=train_data.N),
+        gprior=jgp.GPrior(kernel),
+        likelihood=jgp.Gaussian(num_datapoints=train_data.N),
     )
 
-    gpf.initialise()
+    jgp.initialise()
     # model = gpflow.models.SGPR(
     #     (X, Y), kernel=gpflow.kernels.SquaredExponential(), inducing_variable=Z
     # )
