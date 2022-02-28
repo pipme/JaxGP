@@ -1,9 +1,10 @@
 import abc
-from typing import Callable, Optional
+from typing import Callable, Dict, Optional
 
 import jax.numpy as jnp
 from chex import dataclass
 from tensorflow_probability.substrates.jax import distributions as tfd
+from .config import Config
 
 
 @dataclass(repr=False)
@@ -24,6 +25,11 @@ class Likelihood:
     def link_function(self) -> Callable:
         raise NotImplementedError
 
+    @property
+    @abc.abstractmethod
+    def transforms(self) -> Dict:
+        raise NotImplementedError
+
 
 @dataclass(repr=False)
 class Gaussian(Likelihood):
@@ -31,7 +37,7 @@ class Gaussian(Likelihood):
 
     @property
     def params(self) -> dict:
-        return {"variance": jnp.array([1.0])}
+        return {"noise": jnp.array(1.0)}
 
     @property
     def link_function(self) -> Callable:
@@ -39,6 +45,10 @@ class Gaussian(Likelihood):
             return x
 
         return identity_fn
+
+    @property
+    def transforms(self) -> Dict:
+        return {"noise": Config.positive_bijector}
 
 
 @dataclass(repr=False)
@@ -63,6 +73,10 @@ class Bernoulli(Likelihood):
             return rv
 
         return moment_fn
+    
+    @property
+    def transforms(self) -> Dict:
+        return {}
 
 
 NonConjugateLikelihoods = [Bernoulli]

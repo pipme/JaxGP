@@ -48,7 +48,7 @@ class ConjugatePosterior(Posterior):
         self, training_data: Dataset, params: dict
     ) -> Callable[[Array], Array]:
         X, y = training_data.X, training_data.y
-        sigma = params["likelihood"]["variance"]
+        sigma = params["likelihood"]["noise"]
         n_train = training_data.n
         # Precompute covariance matrices
         Kff = gram(self.prior.kernel, X, params["kernel"])
@@ -74,7 +74,7 @@ class ConjugatePosterior(Posterior):
     ) -> Callable[[Array], Array]:
         X = training_data.X
         n_train = training_data.n
-        variance = params["likelihood"]["variance"]
+        variance = params["likelihood"]["noise"]
         n_train = training_data.n
         Kff = gram(self.prior.kernel, X, params["kernel"])
         Kff += jnp.eye(n_train) * 1e-8
@@ -108,9 +108,7 @@ class ConjugatePosterior(Posterior):
                 params = concat_dictionaries(params, transform(static_params))
             mu = self.prior.mean_function(x, params)
             gram_matrix = gram(self.prior.kernel, x, params["kernel"])
-            gram_matrix += params["likelihood"]["variance"] * jnp.eye(
-                x.shape[0]
-            )
+            gram_matrix += params["likelihood"]["noise"] * jnp.eye(x.shape[0])
             L = cholesky(gram_matrix, lower=True)
             random_variable = tfd.MultivariateNormalTriL(mu, L)
 

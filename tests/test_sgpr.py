@@ -1,11 +1,14 @@
 from dataclasses import dataclass
-import imp
 
 import jax.numpy as jnp
 from jax import random
+from pytest import param
 import jaxgp as jgp
 import numpy as np
 from jaxgp.sgpr import SGPR
+import jax
+from scipy.optimize import minimize
+import jaxopt
 
 # @dataclass(frozen=True)
 # class Datum:
@@ -33,14 +36,20 @@ def test_sgpr_qu():
     kernel = jgp.RBF(active_dims=[0, 1])
     sgpr = SGPR(
         train_data=train_data,
-        gprior=jgp.GPrior(kernel),
+        gprior=jgp.GPrior(kernel=kernel),
         likelihood=jgp.Gaussian(num_datapoints=train_data.N),
+        inducing_points=Z,
     )
 
-    jgp.initialise()
-    # model = gpflow.models.SGPR(
-    #     (X, Y), kernel=gpflow.kernels.SquaredExponential(), inducing_variable=Z
-    # )
+    params, constrain_trans, unconstrain_trans = jgp.initialise(sgpr)
+    raw_params = unconstrain_trans(params)
+    neg_elbo = sgpr.build_elbo(sign=-1.0)
+    print(neg_elbo(raw_params))
+    solver = jaxopt.ScipyMinimize(fun=neg_elbo)
+    soln = solver.run(raw_params)
+    print(soln.state.fun_val)
+    # soln = minimize(obj, raw_params, jac=True)
+    # print(soln.fun)
 
     # gpflow.optimizers.Scipy().minimize(
     #     model.training_loss, variables=model.trainable_variables
@@ -55,3 +64,7 @@ def test_sgpr_qu():
     # np.testing.assert_allclose(
     #     tf.reshape(qu_cov, (1, 20, 20)), f_at_Z_cov, rtol=1e-5, atol=1e-5
     # )
+
+
+if __name__ == "__main__":
+    test_sgpr_qu()

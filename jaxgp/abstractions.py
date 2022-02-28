@@ -1,6 +1,7 @@
 from chex import dataclass
 from typing import Optional
 import jax.numpy as jnp
+from .config import Config
 
 
 @dataclass
@@ -20,3 +21,7 @@ class InducingPoints:
     @params.setter
     def params(self, value):
         self._params = value
+
+    @property
+    def transforms(self):
+        return {"inducing_points": Config.identity_bijector}

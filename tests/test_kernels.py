@@ -5,13 +5,13 @@ import jax.numpy as jnp
 import jax.random as jr
 from numpy import isin, sort
 import pytest
-from gpfun import kernels
-from gpfun.kernels import (
+from jaxgp import kernels
+from jaxgp.kernels import (
     RBF,
     cross_covariance,
     gram,
 )
-from gpfun.parameters import initialise
+from jaxgp.parameters import initialise
 
 
 @pytest.mark.parametrize("kern", [RBF()])

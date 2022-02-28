@@ -23,10 +23,15 @@ class GP:
     def variance(self) -> Callable[[Dataset], Array]:
         raise NotImplementedError
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def params(self) -> Dict:
         raise NotImplementedError
 
+    @property
+    @abstractmethod
+    def transforms(self) -> Dict:
+        raise NotImplementedError
 
 @dataclass(repr=False)
 class GPrior(GP):
@@ -68,3 +73,10 @@ class GPrior(GP):
         return tfd.MultivariateNormalTriL(
             mu.squeeze(), linalg.cholesky(sigma, lower=True)
         )
+
+    @property
+    def transforms(self) -> Dict:
+        return {
+            "kernel": self.kernel.transforms,
+            "mean_function": self.mean_function.transforms,
+        }

@@ -1,10 +1,12 @@
 import abc
+from signal import raise_signal
 from typing import Dict, Optional
 
 import jax.numpy as jnp
 from chex import dataclass
 
 from .types import Array
+from .config import Config
 
 
 @dataclass(repr=False)
@@ -21,7 +23,12 @@ class MeanFunction:
 
     @property
     @abc.abstractmethod
-    def params(self) -> dict:
+    def params(self) -> Dict:
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
+    def transforms(self) -> Dict:
         raise NotImplementedError
 
 
@@ -38,16 +45,28 @@ class Zero(MeanFunction):
     def params(self) -> dict:
         return {}
 
+    @property
+    def transforms(self) -> Dict:
+        return {}
+
 
 @dataclass(repr=False)
 class Constant(MeanFunction):
     output_dim: Optional[int] = 1
     name: Optional[str] = "Constant mean function"
+    _params: Optional[Dict] = None
+
+    def __post_init__(self):
+        self._params = {"constant": jnp.array(1.0)}
 
     def __call__(self, x: Array, params: Dict) -> Array:
         out_shape = (x.shape[0], self.output_dim)
-        return jnp.ones(shape=out_shape) * params["variance"]
+        return jnp.ones(shape=out_shape) * params["constant"]
 
     @property
     def params(self) -> dict:
-        return {"variance": jnp.array(1.0)}
+        return self._params
+
+    @property
+    def transforms(self) -> Dict:
+        return {"constant": Config.identity_bijector}

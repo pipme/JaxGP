@@ -8,6 +8,7 @@ from .types import Array
 import jax.numpy as jnp
 from jax import vmap, jit
 from functools import partial
+from .config import Config
 
 
 class Distance:
@@ -75,6 +76,11 @@ class Kernel:
     def params(self, value):
         self._params = value
 
+    @property
+    @abstractmethod
+    def transforms(self):
+        raise NotImplementedError
+
 
 @dataclass(repr=False)
 class RBF(Kernel):
@@ -85,7 +91,7 @@ class RBF(Kernel):
         self.ndims = 1 if not self.active_dims else len(self.active_dims)
         self._params = {
             "lengthscale": jnp.array([1.0] * self.ndims),
-            "variance": jnp.array([1.0]),
+            "outputscale": jnp.array([1.0]),
         }
 
     def __call__(
@@ -93,8 +99,17 @@ class RBF(Kernel):
     ) -> Array:
         x = self.slice_input(x) / params["lengthscale"]
         y = self.slice_input(y) / params["lengthscale"]
-        K = params["variance"] * jnp.exp(-0.5 * self.distance(x, y))
+        K = params["outputscale"] * jnp.exp(
+            -0.5 * self.distance.squared_distance(x, y)
+        )
         return K.squeeze()
+
+    @property
+    def transforms(self):
+        return {
+            "outputscale": Config.positive_bijector,
+            "lengthscale": Config.positive_bijector,
+        }
 
 
 # @partial(jit, static_argnames="diag")
@@ -112,4 +127,4 @@ def gram(
 def cross_covariance(
     kernel: Kernel, x: Array, y: Array, params: dict
 ) -> Array:
-    return vmap(lambda x1: vmap(lambda y1: kernel(x1, y1, params))(x))(y)
+    return vmap(lambda x1: vmap(lambda y1: kernel(x1, y1, params))(y))(x)
