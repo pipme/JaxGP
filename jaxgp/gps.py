@@ -33,6 +33,7 @@ class GP:
     def transforms(self) -> Dict:
         raise NotImplementedError
 
+
 @dataclass(repr=False)
 class GPrior(GP):
     kernel: Kernel
@@ -41,6 +42,11 @@ class GPrior(GP):
 
     # def __mul__(self, other: Likelihood):
     #     return construct_posterior(prior=self, likelihood=other)
+    def __post_init__(self):
+        self._params = {
+            "kernel": self.kernel.params,
+            "mean_function": self.mean_function.params,
+        }
 
     def mean(self, params: dict) -> Callable[[Array], Array]:
         def mean_fn(X: Array):
@@ -60,10 +66,7 @@ class GPrior(GP):
 
     @property
     def params(self) -> dict:
-        return {
-            "kernel": self.kernel.params,
-            "mean_function": self.mean_function.params,
-        }
+        return self._params
 
     def random_variable(self, X: Array, params: dict) -> tfd.Distribution:
         N = X.shape[0]

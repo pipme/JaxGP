@@ -13,6 +13,7 @@ from .config import Config
 class MeanFunction:
     output_dim: Optional[int] = 1
     name: Optional[str] = "Mean function"
+    _params: Optional[Dict] = None
 
     @abc.abstractmethod
     def __call__(self, x: Array) -> Array:
@@ -22,9 +23,12 @@ class MeanFunction:
         return f"{self.name}\n\t Output dimension: {self.output_dim}"
 
     @property
-    @abc.abstractmethod
     def params(self) -> Dict:
-        raise NotImplementedError
+        return self._params
+
+    @params.setter
+    def params(self, value):
+        self._params = value
 
     @property
     @abc.abstractmethod
@@ -37,13 +41,12 @@ class Zero(MeanFunction):
     output_dim: Optional[int] = 1
     name: Optional[str] = "Zero mean function"
 
-    def __call__(self, x: Array, params: dict) -> Array:
+    def __post_init__(self):
+        self._params = {}
+
+    def __call__(self, x: Array, params: Dict) -> Array:
         out_shape = (x.shape[0], self.output_dim)
         return jnp.zeros(shape=out_shape)
-
-    @property
-    def params(self) -> dict:
-        return {}
 
     @property
     def transforms(self) -> Dict:
@@ -54,7 +57,6 @@ class Zero(MeanFunction):
 class Constant(MeanFunction):
     output_dim: Optional[int] = 1
     name: Optional[str] = "Constant mean function"
-    _params: Optional[Dict] = None
 
     def __post_init__(self):
         self._params = {"constant": jnp.array(1.0)}
@@ -62,10 +64,6 @@ class Constant(MeanFunction):
     def __call__(self, x: Array, params: Dict) -> Array:
         out_shape = (x.shape[0], self.output_dim)
         return jnp.ones(shape=out_shape) * params["constant"]
-
-    @property
-    def params(self) -> dict:
-        return self._params
 
     @property
     def transforms(self) -> Dict:

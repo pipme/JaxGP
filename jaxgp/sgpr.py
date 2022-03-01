@@ -1,21 +1,25 @@
+from multiprocessing import parent_process
 from operator import imod
 from tkinter.tix import Tree
 from idna import check_label
 import jax
 import jax.numpy as jnp
 from chex import dataclass
+import copy
+import jax.scipy.linalg as linalg
 
 from jaxgp.likelihoods import Gaussian, Likelihood
 from .utils import concat_dictionaries, inducingpoint_wrapper
 
-from typing import Optional, Dict, NamedTuple
+from typing import Optional, Dict, NamedTuple, Tuple
 from .gps import GPrior
 from .abstractions import InducingPoints
 from collections import namedtuple
 from .types import Array, Dataset
 from .kernels import cross_covariance, gram
-from jax.scipy.linalg import cholesky, solve_triangular
+
 from .parameters import build_transforms
+from .posteriors import SGPRPosterior
 
 
 class SGPR:
@@ -35,8 +39,8 @@ class SGPR:
         else:
             self.inducing_points = InducingPoints()
         self.hyp_prior = hyp_prior
-        self.num_data = self.train_data.y.shape[0]
-        self.num_latent_gps = self.train_data.y.shape[1]
+        self.num_data = self.train_data.Y.shape[0]
+        self.num_latent_gps = self.train_data.Y.shape[1]
         self._params = concat_dictionaries(
             self.gprior.params,
             {"likelihood": self.likelihood.params},
@@ -44,7 +48,7 @@ class SGPR:
         )
         self._transforms = concat_dictionaries(
             self.gprior.transforms,
-            {"likelihood": self.likelihood.params},
+            {"likelihood": self.likelihood.transforms},
             self.inducing_points.transforms,
         )
 
@@ -63,14 +67,14 @@ class SGPR:
 
         Kuf = cross_covariance(self.gprior.kernel, iv, X, params["kernel"])
         Kuu = cross_covariance(self.gprior.kernel, iv, iv, params["kernel"])
-        L = cholesky(Kuu, lower=True)
+        L = linalg.cholesky(Kuu, lower=True)
         sigma = jnp.sqrt(sigma_sq)
 
         # Compute intermediate matrices
-        A = solve_triangular(L, Kuf, lower=True) / sigma
+        A = linalg.solve_triangular(L, Kuf, lower=True) / sigma
         AAT = A @ A.T
         B = AAT + jnp.eye(AAT.shape[0])
-        LB = cholesky(B, lower=True)
+        LB = linalg.cholesky(B, lower=True)
         return namedtuple("CommonTensors", ["A", "B", "LB", "AAT", "L"])(
             A, B, LB, AAT, L
         )
@@ -78,9 +82,9 @@ class SGPR:
     def logdet_term(self, params: Dict, common: NamedTuple):
         LB = common.LB
         AAT = common.AAT
-        X, y = self.train_data.X, self.train_data.y
+        X, Y = self.train_data.X, self.train_data.Y
         num_data = self.num_data
-        outdim = y.shape[1]
+        outdim = Y.shape[1]
         kdiag = gram(self.gprior.kernel, X, params["kernel"], diag=True)
         sigma_sq = params["likelihood"]["noise"]
 
@@ -103,13 +107,13 @@ class SGPR:
         A = common.A
         LB = common.LB
 
-        X, y = self.train_data.X, self.train_data.y
-        err = y - self.gprior.mean(params)(X)
+        X, Y = self.train_data.X, self.train_data.Y
+        err = Y - self.gprior.mean(params)(X)
         sigma_sq = params["likelihood"]["noise"]
         sigma = jnp.sqrt(sigma_sq)
 
         Aerr = A @ err
-        c = solve_triangular(LB, Aerr, lower=True) / sigma
+        c = linalg.solve_triangular(LB, Aerr, lower=True) / sigma
 
         # sigma^2 * y^T @ y
         err_inner_prod = jnp.sum(err ** 2) / sigma_sq
@@ -119,12 +123,12 @@ class SGPR:
         return quad
 
     def build_elbo(self, sign=1.0):
-        X, y = self.train_data.X, self.train_data.y
+        X, Y = self.train_data.X, self.train_data.Y
         constrain_trans, unconstrain_trans = build_transforms(self.transforms)
 
-        def elbo_fn(params: Dict):
+        def elbo_fn(raw_params: Dict):
             # transform params to constrained space
-            params = constrain_trans(params)
+            params = constrain_trans(raw_params)
             common = self._common_calculation(params)
             num_data = self.num_data
             output_dim = self.num_latent_gps
@@ -135,24 +139,37 @@ class SGPR:
 
         return elbo_fn
 
-    def compute_qu(self, params: Dict):
-        X, y = self.train_data.X, self.train_data.y
+    def compute_qu(self, params: Dict) -> Tuple[Array, Array]:
+        X, Y = self.train_data.X, self.train_data.Y
 
         Kuf = cross_covariance(
-            self.gprior.kernel, params["inducing_points"], X
+            self.gprior.kernel, params["inducing_points"], X, params["kernel"]
         )
-        Kuu = gram(self.gprior.kernel, params["inducing_points"])
+        Kuu = gram(
+            self.gprior.kernel, params["inducing_points"], params["kernel"]
+        )
 
         sig = Kuu + (params["likelihood"]["noise"] ** -1) * Kuf @ Kuf.T
-        sig_sqrt = cholesky(sig, lower=True)
-        sig_sqrt_kuu = solve_triangular(sig_sqrt, Kuu, lower=True)
+        sig_sqrt = linalg.cholesky(sig, lower=True)
+        sig_sqrt_kuu = linalg.solve_triangular(sig_sqrt, Kuu, lower=True)
 
         cov = sig_sqrt_kuu.T @ sig_sqrt_kuu
-        err = y - self.gprior.mean(params)(X)
+        err = Y - self.gprior.mean(params)(X)
         mu = (
             sig_sqrt_kuu.T
-            @ solve_triangular(sig_sqrt, Kuf @ err, lower=True)
+            @ linalg.solve_triangular(sig_sqrt, Kuf @ err, lower=True)
             / params["likelihood"]["noise"]
         )
 
         return mu, cov
+
+    def posterior(self):
+        # gprior = copy.deepcopy(self.gprior)
+        # gprior.kernel.params = params["kernel"]
+        # gprior.mean_function.params = params["mean_function"]
+
+        # inducing_points = copy.deepcopy(self.inducing_points)
+        # inducing_points.params["inducing_points"] = params["inducing_points"]
+
+        # likelihood = copy.deepcopy(self.likelihood)
+        return SGPRPosterior(self.train_data, self.gprior)

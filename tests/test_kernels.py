@@ -35,3 +35,13 @@ def test_cross_covariance(kern, n1, n2):
     params, _, _ = initialise(kern)
     kernel_matrix = cross_covariance(kern, x2, x1, params)
     assert kernel_matrix.shape == (n1, n2)
+
+
+@pytest.mark.parametrize("kern", [RBF()])
+@pytest.mark.parametrize("n", [3, 10, 20])
+def test_gram_cc_equivalence(kern, n):
+    x = jnp.linspace(-1.0, 1.0, num=n).reshape(-1, 1)
+    params, _, _ = initialise(kern)
+    kernel_matrix_cc = cross_covariance(kern, x, x, params)
+    kernel_matrix_gram = gram(kern, x, params)
+    assert jnp.allclose(kernel_matrix_cc, kernel_matrix_gram)

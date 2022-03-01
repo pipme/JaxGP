@@ -1,4 +1,8 @@
+from jax.config import config
+
+config.update("jax_debug_nans", True)
 from dataclasses import dataclass
+from operator import ne
 
 import jax.numpy as jnp
 from jax import random
@@ -32,38 +36,35 @@ def test_sgpr_qu():
     Z = Datum().Z
     y = np.sin(X @ np.array([[-1.4], [0.5]])) + 0.5 * rng.randn(len(X), 1)
 
-    train_data = jgp.Dataset(X=X, y=y)
+    train_data = jgp.Dataset(X=X, Y=y)
     kernel = jgp.RBF(active_dims=[0, 1])
-    sgpr = SGPR(
+    model = SGPR(
         train_data=train_data,
         gprior=jgp.GPrior(kernel=kernel),
         likelihood=jgp.Gaussian(num_datapoints=train_data.N),
         inducing_points=Z,
     )
 
-    params, constrain_trans, unconstrain_trans = jgp.initialise(sgpr)
+    params, constrain_trans, unconstrain_trans = jgp.initialise(model)
     raw_params = unconstrain_trans(params)
-    neg_elbo = sgpr.build_elbo(sign=-1.0)
-    print(neg_elbo(raw_params))
-    solver = jaxopt.ScipyMinimize(fun=neg_elbo)
+    neg_elbo = model.build_elbo(sign=-1.0)
+    print("Initial negative elbo = ", neg_elbo(raw_params))
+    solver = jaxopt.ScipyMinimize(
+        fun=neg_elbo, jit=False, options={"disp": True}
+    )
     soln = solver.run(raw_params)
-    print(soln.state.fun_val)
-    # soln = minimize(obj, raw_params, jac=True)
-    # print(soln.fun)
-
-    # gpflow.optimizers.Scipy().minimize(
-    #     model.training_loss, variables=model.trainable_variables
-    # )
-
-    # qu_mean, qu_cov = model.compute_qu()
-    # f_at_Z_mean, f_at_Z_cov = model.predict_f(
-    #     model.inducing_variable.Z, full_cov=True
-    # )
-
-    # np.testing.assert_allclose(qu_mean, f_at_Z_mean, rtol=1e-5, atol=1e-5)
-    # np.testing.assert_allclose(
-    #     tf.reshape(qu_cov, (1, 20, 20)), f_at_Z_cov, rtol=1e-5, atol=1e-5
-    # )
+    print("After optimization negative elbo = ", soln.state.fun_val)
+    # Remember to transform since the optimization is in unconstrained space
+    final_params = constrain_trans(soln.params)
+    posterior = model.posterior()
+    qu_mean, qu_cov = model.compute_qu(final_params)
+    f_at_Z_mean, f_at_Z_cov = posterior.predict_f(
+        final_params["inducing_points"], final_params, full_cov=True
+    )
+    assert jnp.allclose(qu_mean, f_at_Z_mean, rtol=1e-5, atol=1e-5)
+    assert jnp.allclose(
+        qu_cov.reshape(1, 20, 20), f_at_Z_cov, rtol=1e-5, atol=1e-5
+    )
 
 
 if __name__ == "__main__":

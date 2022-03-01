@@ -16,13 +16,13 @@ Array = Union[np.ndarray, jnp.ndarray]
 @dataclass(repr=False)
 class Dataset:
     X: Array
-    y: Array = None
+    Y: Array = None
 
     def __post_init__(self):
-        if self.y.ndim == 1:
-            self.y = self.y[..., None]
+        if self.Y.ndim == 1:
+            self.Y = self.Y[..., None]
         assert self.X.ndim == 2
-        assert self.y.ndim == 2
+        assert self.Y.ndim == 2
 
     def __repr__(self) -> str:
         return (
@@ -40,4 +40,4 @@ class Dataset:
 
     @property
     def out_dim(self) -> int:
-        return self.y.shape[1]
+        return self.Y.shape[1]
