@@ -50,7 +50,7 @@ def test_sgpr_qu():
     neg_elbo = model.build_elbo(sign=-1.0)
     print("Initial negative elbo = ", neg_elbo(raw_params))
     solver = jaxopt.ScipyMinimize(
-        fun=neg_elbo, jit=False, options={"disp": True}
+        fun=neg_elbo, jit=True, options={"disp": True}
     )
     soln = solver.run(raw_params)
     print("After optimization negative elbo = ", soln.state.fun_val)

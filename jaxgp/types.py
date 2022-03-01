@@ -21,6 +21,8 @@ class Dataset:
     def __post_init__(self):
         if self.Y.ndim == 1:
             self.Y = self.Y[..., None]
+        if self.X.ndim == 1:
+            self.X = self.X[..., None]
         assert self.X.ndim == 2
         assert self.Y.ndim == 2
 

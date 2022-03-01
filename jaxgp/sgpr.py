@@ -1,7 +1,3 @@
-from multiprocessing import parent_process
-from operator import imod
-from tkinter.tix import Tree
-from idna import check_label
 import jax
 import jax.numpy as jnp
 from chex import dataclass
@@ -20,6 +16,7 @@ from .kernels import cross_covariance, gram
 
 from .parameters import build_transforms
 from .posteriors import SGPRPosterior
+from .config import default_jitter
 
 
 class SGPR:
@@ -67,6 +64,7 @@ class SGPR:
 
         Kuf = cross_covariance(self.gprior.kernel, iv, X, params["kernel"])
         Kuu = cross_covariance(self.gprior.kernel, iv, iv, params["kernel"])
+        Kuu = default_jitter(Kuu)
         L = linalg.cholesky(Kuu, lower=True)
         sigma = jnp.sqrt(sigma_sq)
 

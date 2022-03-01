@@ -22,6 +22,8 @@ def inducingpoint_wrapper(
     object or an array specifying InducingPoints positions.
     """
     if not isinstance(inducing_points, InducingPoints):
+        if inducing_points.ndim == 1:
+            inducing_points = inducing_points[..., None]
         N, D = inducing_points.shape
         inducing_points_obj = InducingPoints(num_inducing=N, D=D)
         inducing_points_obj.params["inducing_points"] = inducing_points

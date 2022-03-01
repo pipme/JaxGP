@@ -14,6 +14,7 @@ from .utils import concat_dictionaries
 from chex import dataclass
 from .parameters import copy_dict_structure
 from .kernels import gram, cross_covariance
+from .config import default_jitter
 
 
 @dataclass
@@ -132,6 +133,8 @@ class SGPRPosterior:
         self.num_latent_gps = train_data.Y.shape[-1]
 
     def predict_f(self, X_new: Array, params: Dict, full_cov: bool = False):
+        if X_new.ndim == 1:
+            X_new = X_new[..., None]
         X, Y = self.train_data.X, self.train_data.Y
         iv = params["inducing_points"]
         num_inducing = iv.shape[0]
@@ -139,6 +142,7 @@ class SGPRPosterior:
         Kuf = cross_covariance(self.gprior.kernel, iv, X, params["kernel"])
         # might need jittering?
         Kuu = cross_covariance(self.gprior.kernel, iv, iv, params["kernel"])
+        Kuu = default_jitter(Kuu)
         Kus = cross_covariance(self.gprior.kernel, iv, X_new, params["kernel"])
         sigma = jnp.sqrt(params["likelihood"]["noise"])
         L = linalg.cholesky(Kuu, lower=True)

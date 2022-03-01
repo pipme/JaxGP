@@ -27,5 +27,5 @@ class Config:
     positive_minimum: float = 0.0
 
 
-def default_jitter():
-    return Config.jitter
+def default_jitter(K):
+    return K + Config.jitter * jnp.eye(K.shape[0])
