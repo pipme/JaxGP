@@ -48,14 +48,14 @@ class L2Distance(Distance):
 
 @dataclass(repr=False)
 class Kernel:
-    active_dims: Optional[List[int]] = None
+    active_dims: Optional[List[int]] = [0]
     stationary: Optional[bool] = False
     spectral: Optional[bool] = False
     name: Optional[str] = "Kernel"
     _params: Optional[Dict] = None
 
     def __post_init__(self):
-        self.ndims = 1 if not self.active_dims else len(self.active_dims)
+        self.ndims = len(self.active_dims)
 
     @abstractmethod
     def __call__(self, x: Array, y: Array, params: dict) -> Array:
@@ -88,7 +88,7 @@ class RBF(Kernel):
     distance: Distance = L2Distance()
 
     def __post_init__(self):
-        self.ndims = 1 if not self.active_dims else len(self.active_dims)
+        self.ndims = len(self.active_dims)
         self._params = {
             "lengthscale": jnp.array([1.0] * self.ndims),
             "outputscale": jnp.array([1.0]),
@@ -97,6 +97,8 @@ class RBF(Kernel):
     def __call__(
         self, x: jnp.DeviceArray, y: jnp.DeviceArray, params: dict
     ) -> Array:
+        for key, _ in self._params.items():
+            assert self._params[key].shape == params[key].shape
         x = self.slice_input(x) / params["lengthscale"]
         y = self.slice_input(y) / params["lengthscale"]
         K = params["outputscale"] * jnp.exp(

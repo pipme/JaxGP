@@ -4,7 +4,7 @@ import jax.numpy as jnp
 from chex import dataclass
 
 from jaxgp.likelihoods import Gaussian, Likelihood
-from .utils import concat_dictionaries
+from .utils import concat_dictionaries, inducingpoint_wrapper
 
 from typing import Optional, Dict, NamedTuple
 from gps import GPrior
@@ -13,28 +13,106 @@ from collections import namedtuple
 from .types import Array, Dataset
 from .kernels import cross_covariance
 from jax.scipy.linalg import cholesky, solve_triangular
+from .config import Config
 
 
-@dataclass
 class SVGP:
-    gprior: GPrior
-    likelihood: Gaussian
-    inducing_points: InducingPoints
-    hyp_prior: Optional[GPrior] = None
+    def __init__(
+        self,
+        gprior: GPrior,
+        likelihood: Likelihood,
+        inducing_points: InducingPoints,
+        num_latent_gps: Optional[int] = 1,
+        q_diag: bool = False,
+        q_mu: Optional[Array] = None,
+        q_sqrt: Optional[Array] = None,
+        whiten: bool = True,
+    ) -> None:
+        """_summary_
 
-    def __post_init__(self):
-        self._params = {}
+        Parameters
+        ----------
+        gprior : GPrior
+            _description_
+        likelihood : Likelihood
+            _description_
+        inducing_points : InducingPoints
+            _description_
+        num_latent_gps : Optional[int], optional
+            The number of latent processes to use, by default 1
+        q_diag : bool, optional
+            If True, the covariance is approximated by a diagonal matrix, by default False
+        q_mu : Optional[Array], optional
+            _description_, by default None
+        q_sqrt : Optional[Array], optional
+            _description_, by default None
+        whiten : bool, optional
+            _description_, by default True
+        """
+        self.num_latent_gps = num_latent_gps
+        self.gprior = gprior
+        self.likelihood = likelihood
+        self.whiten = whiten
+        self.q_diag = q_diag
+
+        self.inducing_points = inducingpoint_wrapper(inducing_points)
+        self.num_inducing = self.inducing_points.num_inducing
+        self.q_mu, self.q_sqrt = self._init_variational_parameters(
+            q_mu, q_sqrt, q_diag
+        )
+        self._params = concat_dictionaries(
+            self.gprior.params,
+            self.inducing_points.params,
+            {"likelihood": self.likelihood.params},
+            {"q_mu": self.q_mu},
+            {"q_sqrt": self.q_sqrt},
+        )
+
+        self._transforms = concat_dictionaries(
+            self.gprior.transforms,
+            self.inducing_points.transforms,
+            {"likelihood": self.likelihood.transforms},
+            {"q_mu": Config.identity_bijector},
+            {
+                "q_sqrt": Config.positive_bijector
+                if q_diag
+                else Config.identity_bijector
+            },
+        )
+
+    def _init_variational_parameters(
+        self,
+        q_mu: Optional[Array] = None,
+        q_sqrt: Optional[Array] = None,
+        q_diag: bool = False,
+    ):
+        if q_mu is None:
+            q_mu = jnp.zeros((self.num_inducing, self.num_latent_gps))
+        q_mu = jnp.array(q_mu)
+
+        if q_sqrt is None:
+            if q_diag:
+                q_sqrt = jnp.ones((self.num_inducing, self.num_latent_gps))
+            else:
+                q_sqrt = [
+                    jnp.eye(self.num_inducing)
+                    for _ in range(self.num_latent_gps)
+                ]
+                q_sqrt = jnp.array(q_sqrt)  # [P, M, M]
+        else:
+            if q_diag:
+                assert q_sqrt.ndim == 2
+                assert self.num_latent_gps == q_sqrt.shape[1]  # [M, P]
+            else:
+                assert q_sqrt.ndim == 3
+                assert self.num_latent_gps == q_sqrt.shape[0]
+                assert self.num_inducing == q_sqrt.shape[1] == q_sqrt.shape[2]
+        return q_mu, q_sqrt
 
     @property
-    def params(self) -> dict:
-        # variational_params = concat_dictionaries(self.inducing_points.params, )
+    def params(self) -> Dict:
+        return self._params
 
-        gp_hyperparams = concat_dictionaries(
-            self.gprior.params, {"likelihood": self.likelihood.params}
-        )
-        # self._params =
-        return gp_hyperparams
-
-    @params.setter
-    def params(self, value):
-        self._params = value
+    @property
+    def transforms(self) -> Dict:
+        return self._transforms

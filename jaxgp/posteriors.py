@@ -140,7 +140,6 @@ class SGPRPosterior:
         num_inducing = iv.shape[0]
         err = Y - self.gprior.mean(params)(X)
         Kuf = cross_covariance(self.gprior.kernel, iv, X, params["kernel"])
-        # might need jittering?
         Kuu = cross_covariance(self.gprior.kernel, iv, iv, params["kernel"])
         Kuu = default_jitter(Kuu)
         Kus = cross_covariance(self.gprior.kernel, iv, X_new, params["kernel"])

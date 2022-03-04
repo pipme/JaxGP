@@ -14,5 +14,6 @@ from .likelihoods import Bernoulli, Gaussian
 from .means import Constant, Zero
 from .parameters import copy_dict_structure, initialise
 from .types import Dataset
+from .sgpr import SGPR
 
 __version__ = "0.0.1"

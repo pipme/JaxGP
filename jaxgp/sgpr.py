@@ -25,16 +25,14 @@ class SGPR:
         train_data: Dataset,
         gprior: GPrior,
         likelihood: Gaussian,
-        inducing_points: InducingPoints = None,
+        inducing_points: InducingPoints,
         hyp_prior: Optional[GPrior] = None,
     ) -> None:
         self.train_data = train_data
         self.gprior = gprior
         self.likelihood = likelihood
-        if inducing_points is not None:
-            self.inducing_points = inducingpoint_wrapper(inducing_points)
-        else:
-            self.inducing_points = InducingPoints()
+        self.inducing_points = inducingpoint_wrapper(inducing_points)
+
         self.hyp_prior = hyp_prior
         self.num_data = self.train_data.Y.shape[0]
         self.num_latent_gps = self.train_data.Y.shape[1]
@@ -162,12 +160,4 @@ class SGPR:
         return mu, cov
 
     def posterior(self):
-        # gprior = copy.deepcopy(self.gprior)
-        # gprior.kernel.params = params["kernel"]
-        # gprior.mean_function.params = params["mean_function"]
-
-        # inducing_points = copy.deepcopy(self.inducing_points)
-        # inducing_points.params["inducing_points"] = params["inducing_points"]
-
-        # likelihood = copy.deepcopy(self.likelihood)
         return SGPRPosterior(self.train_data, self.gprior)
