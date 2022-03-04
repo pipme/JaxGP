@@ -122,7 +122,7 @@ class SGPR:
         X, Y = self.train_data.X, self.train_data.Y
         constrain_trans, unconstrain_trans = build_transforms(self.transforms)
 
-        def elbo_fn(raw_params: Dict):
+        def elbo(raw_params: Dict):
             # transform params to constrained space
             params = constrain_trans(raw_params)
             common = self._common_calculation(params)
@@ -133,7 +133,7 @@ class SGPR:
             quad = self.quad_term(params, common)
             return sign * (const + logdet + quad)
 
-        return elbo_fn
+        return elbo
 
     def compute_qu(self, params: Dict) -> Tuple[Array, Array]:
         X, Y = self.train_data.X, self.train_data.Y

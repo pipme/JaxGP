@@ -14,6 +14,7 @@ from .types import Array, Dataset
 from .kernels import cross_covariance
 from jax.scipy.linalg import cholesky, solve_triangular
 from .config import Config
+from .parameters import build_transforms
 
 
 class SVGP:
@@ -116,3 +117,30 @@ class SVGP:
     @property
     def transforms(self) -> Dict:
         return self._transforms
+
+    def prior_kl(self, params: Dict) -> Array:
+        return
+
+    def build_elbo(self, num_data: Optional[int] = None, sign=1.0):
+        constrain_trans, unconstrain_trans = build_transforms(self.transforms)
+
+        def elbo(raw_params: Dict, data: Dataset):
+            params = constrain_trans(raw_params)
+            X, Y = data.X, data.Y
+            kl = self.prior_kl(params)
+            f_mean, f_var = self.predict_f(params, X, full_cov=False)
+            var_exp = self.likelihood.variational_expectation(
+                params["likelihood"], f_mean, f_var, Y
+            )
+
+            if num_data is not None:
+                minibatch_size = X.shape[0]
+                scale = num_data / minibatch_size
+            else:
+                scale = 1.0
+            return jnp.sum(var_exp) * scale - kl
+
+    def predict_f(
+        self, params: Dict, Xnew: Array, full_cov: Optional[bool] = False
+    ):
+        return

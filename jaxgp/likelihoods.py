@@ -1,11 +1,14 @@
 import abc
+from multiprocessing.dummy import Array
+from random import gauss
 from typing import Callable, Dict, Optional
 
 import jax.numpy as jnp
 from chex import dataclass
 from tensorflow_probability.substrates.jax import distributions as tfd
 from .config import Config
-
+from .types import Array
+from .quadratures import gauss_hermite_quadrature
 
 @dataclass(repr=False)
 class Likelihood:
@@ -30,13 +33,39 @@ class Likelihood:
     def transforms(self) -> Dict:
         raise NotImplementedError
 
+    def variational_expectation(self, params: Dict, Fmu, Fvar, Y):
+        """
+        Compute the expected log density of the data, given a Gaussian
+        distribution for the function values,
+
+        i.e. if
+            q(f) = N(Fmu, Fvar)
+
+        and this object represents
+
+            p(y|f)
+
+        then this method computes
+
+           ∫ log(p(y=Y|f)) q(f) df.
+
+        This only works if the broadcasting dimension of the statistics of q(f) (mean and variance)
+        are broadcastable with that of the data Y.
+
+        :param Fmu: mean function evaluation Tensor, with shape [..., latent_dim]
+        :param Fvar: variance of function evaluation Tensor, with shape [..., latent_dim]
+        :param Y: observation Tensor, with shape [..., observation_dim]:
+        :returns: expected log density of the data given q(F), with shape [...]
+        """
+        raise NotImplementedError
+
 
 @dataclass(repr=False)
 class Gaussian(Likelihood):
     name: Optional[str] = "Gaussian"
 
     @property
-    def params(self) -> dict:
+    def params(self) -> Dict:
         return {"noise": jnp.array(1.0)}
 
     @property
@@ -49,6 +78,17 @@ class Gaussian(Likelihood):
     @property
     def transforms(self) -> Dict:
         return {"noise": Config.positive_bijector}
+
+    def variational_expectations(
+        self, params: Dict, Fmu: Array, Fvar: Array, Y: Array
+    ):
+        sigma_sq = params["noise"]
+        return jnp.sum(
+            -0.5 * jnp.log(2 * jnp.pi)
+            - 0.5 * jnp.log(sigma_sq)
+            - 0.5 * ((Y - Fmu) ** 2 + Fvar) / sigma_sq,
+            axis=-1,
+        )
 
 
 @dataclass(repr=False)
@@ -74,9 +114,29 @@ class Bernoulli(Likelihood):
 
         return moment_fn
     
+    def _log_prob(self, F: Array, Y: Array) -> Array:
+        """Compute log probabilities.
+
+        Parameters
+        ----------
+        F : Array
+            Latent function values.
+        Y : Array
+            Observations.
+
+        Returns
+        -------
+        Array
+            Log probabilities.
+        """
+        return self.link_function(F).log_prob(Y)
+
     @property
     def transforms(self) -> Dict:
         return {}
+
+    def variational_expectation(self, params: Dict, Fmu, Fvar, Y):
+        return gauss_hermite_quadrature(self._log_prob, Fmu, Fvar, Y=Y)
 
 
 NonConjugateLikelihoods = [Bernoulli]
