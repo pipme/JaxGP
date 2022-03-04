@@ -1,4 +1,5 @@
-from typing import List, Dict, Union
+from typing import Dict, List, Union
+
 from .abstractions import InducingPoints
 from .types import Array
 

@@ -1,12 +1,11 @@
 import abc
-from signal import raise_signal
 from typing import Dict, Optional
 
 import jax.numpy as jnp
 from chex import dataclass
 
-from .types import Array
 from .config import Config
+from .types import Array
 
 
 @dataclass(repr=False)

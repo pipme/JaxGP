@@ -1,9 +1,11 @@
 from typing import Callable
-import numpy as np
+
 import jax.numpy as jnp
+import numpy as np
 
 """The number of Gauss-Hermite points to use for quadrature"""
 DEFAULT_NUM_GAUSS_HERMITE_POINTS = 20
+
 
 def gh_points_and_weights(n_gh: int):
     r"""
@@ -22,6 +24,7 @@ def gh_points_and_weights(n_gh: int):
     z = z * np.sqrt(2)
     dz = dz / np.sqrt(np.pi)
     return z, dz
+
 
 def gauss_hermite_quadrature(
     fun: Callable,

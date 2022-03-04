@@ -1,16 +1,15 @@
-from typing import Callable, Dict, Optional
 from abc import abstractmethod, abstractproperty
+from typing import Callable, Dict, Optional
 
 import jax.numpy as jnp
-from jax.scipy import linalg
-from numpy import isin
-
 import tensorflow_probability.substrates.jax.distributions as tfd
 from chex import dataclass
-from .types import Array, Dataset
+from jax.scipy import linalg
+
 from .kernels import Kernel, cross_covariance, gram
+from .likelihoods import Gaussian, Likelihood, NonConjugateLikelihoods
 from .means import MeanFunction, Zero
-from .likelihoods import Likelihood, Gaussian, NonConjugateLikelihoods
+from .types import Array, Dataset
 
 
 @dataclass

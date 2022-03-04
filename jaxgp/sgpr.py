@@ -1,22 +1,20 @@
+import copy
+from collections import namedtuple
+from typing import Dict, NamedTuple, Optional, Tuple
+
 import jax
 import jax.numpy as jnp
-from chex import dataclass
-import copy
 import jax.scipy.linalg as linalg
 
-from jaxgp.likelihoods import Gaussian, Likelihood
-from .utils import concat_dictionaries, inducingpoint_wrapper
-
-from typing import Optional, Dict, NamedTuple, Tuple
-from .gps import GPrior
 from .abstractions import InducingPoints
-from collections import namedtuple
-from .types import Array, Dataset
+from .config import default_jitter
+from .gps import GPrior
 from .kernels import cross_covariance, gram
-
+from .likelihoods import Gaussian, Likelihood
 from .parameters import build_transforms
 from .posteriors import SGPRPosterior
-from .config import default_jitter
+from .types import Array, Dataset
+from .utils import concat_dictionaries, inducingpoint_wrapper
 
 
 class SGPR:

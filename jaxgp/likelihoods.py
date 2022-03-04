@@ -6,9 +6,11 @@ from typing import Callable, Dict, Optional
 import jax.numpy as jnp
 from chex import dataclass
 from tensorflow_probability.substrates.jax import distributions as tfd
+
 from .config import Config
-from .types import Array
 from .quadratures import gauss_hermite_quadrature
+from .types import Array
+
 
 @dataclass(repr=False)
 class Likelihood:
@@ -16,7 +18,7 @@ class Likelihood:
     name: Optional[str] = "Likelihood"
 
     def __repr__(self):
-        return f"{self.name} likelihood function"
+        return f"{self.name} likeßlihood function"
 
     @property
     @abc.abstractmethod
@@ -113,7 +115,7 @@ class Bernoulli(Likelihood):
             return rv
 
         return moment_fn
-    
+
     def _log_prob(self, F: Array, Y: Array) -> Array:
         """Compute log probabilities.
 

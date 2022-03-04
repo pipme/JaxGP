@@ -1,19 +1,20 @@
+from collections import namedtuple
+from typing import Dict, NamedTuple, Optional
+
 import jax
 import jax.numpy as jnp
 import tensorflow_probability.substrates.jax.distributions as tfd
-
-from jaxgp.likelihoods import Gaussian, Likelihood
-from .utils import concat_dictionaries, inducingpoint_wrapper
-
-from typing import Optional, Dict, NamedTuple
-from gps import GPrior
-from .abstractions import InducingPoints
-from collections import namedtuple
-from .types import Array, Dataset
-from .kernels import cross_covariance
 from jax.scipy.linalg import cholesky, solve_triangular
+
+from gps import GPrior
+from jaxgp.likelihoods import Gaussian, Likelihood
+
+from .abstractions import InducingPoints
 from .config import Config, default_jitter
+from .kernels import cross_covariance
 from .parameters import build_transforms
+from .types import Array, Dataset
+from .utils import concat_dictionaries, inducingpoint_wrapper
 
 
 def gauss_kl(q_mu: Array, q_sqrt: Array, Kp: Optional[Array] = None):

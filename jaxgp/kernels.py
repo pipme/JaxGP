@@ -1,14 +1,14 @@
 from abc import abstractmethod
-from email.policy import default
-from chex import dataclass
+from functools import partial
 from typing import Callable, Dict, List, Optional, Tuple
 
-from pytest import param
-from .types import Array
 import jax.numpy as jnp
-from jax import vmap, jit
-from functools import partial
+from chex import dataclass
+from jax import jit, vmap
+from pytest import param
+
 from .config import Config
+from .types import Array
 
 
 class Distance:

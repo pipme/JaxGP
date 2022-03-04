@@ -1,9 +1,11 @@
 from copy import deepcopy
+from typing import Callable, Dict, Tuple
+
 import jax
-from typing import Tuple, Dict, Callable
-from .config import Config
 import jax.numpy as jnp
 import tensorflow_probability.substrates.jax as tfp
+
+from .config import Config
 
 
 def initialise(obj) -> Tuple[Dict, Dict, Dict]:
