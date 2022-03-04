@@ -1,4 +1,5 @@
 from operator import imod
+from this import d
 import jax
 import jax.numpy as jnp
 from chex import dataclass
@@ -13,8 +14,9 @@ from collections import namedtuple
 from .types import Array, Dataset
 from .kernels import cross_covariance
 from jax.scipy.linalg import cholesky, solve_triangular
-from .config import Config
+from .config import Config, default_jitter
 from .parameters import build_transforms
+from .divergences import gauss_kl
 
 
 class SVGP:
@@ -119,7 +121,17 @@ class SVGP:
         return self._transforms
 
     def prior_kl(self, params: Dict) -> Array:
-        return
+        if self.whiten:
+            return gauss_kl(params["q_mu"], params["q_sqrt"])
+        else:
+            K = cross_covariance(
+                self.gprior.kernel,
+                params["inducing_points"],
+                params["inducing_points"],
+                params["kernel"],
+            )
+            K = default_jitter(K)
+            return gauss_kl(params["q_mu"], params["q_sqrt"], Kp=K)
 
     def build_elbo(self, num_data: Optional[int] = None, sign=1.0):
         constrain_trans, unconstrain_trans = build_transforms(self.transforms)

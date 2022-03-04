@@ -28,4 +28,4 @@ class Config:
 
 
 def default_jitter(K):
-    return K + Config.jitter * jnp.eye(K.shape[0])
+    return K + Config.jitter * jnp.eye(K.shape[-1])
