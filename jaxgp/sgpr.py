@@ -79,7 +79,7 @@ class SGPR:
         X, Y = self.train_data.X, self.train_data.Y
         num_data = self.num_data
         outdim = Y.shape[1]
-        kdiag = gram(self.gprior.kernel, X, params["kernel"], diag=True)
+        kdiag = gram(self.gprior.kernel, X, params["kernel"], full_cov=False)
         sigma_sq = params["likelihood"]["noise"]
 
         # tr(K) / sigma^2

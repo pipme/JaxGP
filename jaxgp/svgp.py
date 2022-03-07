@@ -10,6 +10,7 @@ from gps import GPrior
 from jaxgp.likelihoods import Gaussian, Likelihood
 
 from .abstractions import InducingPoints
+from .conditionals import conditional
 from .config import Config, default_jitter
 from .divergences import gauss_kl
 from .kernels import cross_covariance
@@ -152,6 +153,20 @@ class SVGP:
             return jnp.sum(var_exp) * scale - kl
 
     def predict_f(
-        self, params: Dict, Xnew: Array, full_cov: Optional[bool] = False
+        self,
+        params: Dict,
+        Xnew: Array,
+        full_cov: Optional[bool] = False,
+        full_output_cov: Optional[bool] = False,
     ):
-        return
+        return conditional(
+            params["kernel"],
+            Xnew,
+            params["inducing_variable"],
+            self.gprior.kernel,
+            params["q_mu"],
+            full_cov,
+            full_output_cov,
+            params["q_sqrt"],
+            whiten=self.whiten,
+        )

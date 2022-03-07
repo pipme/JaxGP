@@ -116,14 +116,14 @@ class RBF(Kernel):
 
 # @partial(jit, static_argnames="diag")
 def gram(
-    kernel: Kernel, inputs: Array, params: dict, diag: bool = False
+    kernel: Kernel, inputs: Array, params: dict, full_cov: bool = True
 ) -> Array:
-    if diag:
-        return vmap(lambda x: kernel(x, x, params))(inputs)
-    else:
+    if full_cov:
         return vmap(
             lambda x1: vmap(lambda y1: kernel(x1, y1, params))(inputs)
         )(inputs)
+    else:
+        return vmap(lambda x: kernel(x, x, params))(inputs)
 
 
 def cross_covariance(

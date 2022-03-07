@@ -162,7 +162,9 @@ class SGPRPosterior:
             var = jnp.tile(var[None, ...], [self.num_latent_gps, 1, 1])
         else:
             var = (
-                gram(self.gprior.kernel, X_new, params["kernel"], diag=True)
+                gram(
+                    self.gprior.kernel, X_new, params["kernel"], full_cov=True
+                )
                 + jnp.sum(tmp2 ** 2, 0)
                 - jnp.sum(tmp1 ** 2, 0)
             )
