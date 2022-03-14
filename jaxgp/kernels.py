@@ -48,7 +48,7 @@ class L2Distance(Distance):
 
 @dataclass(repr=False)
 class Kernel:
-    active_dims: Optional[List[int]] = [0]
+    active_dims: Optional[Tuple[int]] = (0,)
     stationary: Optional[bool] = False
     spectral: Optional[bool] = False
     name: Optional[str] = "Kernel"
@@ -114,7 +114,6 @@ class RBF(Kernel):
         }
 
 
-# @partial(jit, static_argnames="diag")
 def gram(
     kernel: Kernel, inputs: Array, params: dict, full_cov: bool = True
 ) -> Array:

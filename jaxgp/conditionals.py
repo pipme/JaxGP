@@ -20,14 +20,12 @@ def conditional(
     kernel_params: Dict,
     Xnew: Array,
     X: Array,
-    # inducing_variable: InducingVariable,
-    # TODO implement dispatching for inducing variables
     kernel,
     f: Array,
     full_cov: Optional[bool] = False,
     full_output_cov: Optional[bool] = False,
     q_sqrt: Optional[Array] = None,
-    white: Optional[bool] = False,
+    whiten: Optional[bool] = False,
 ):
     """GP Conditional.
 
@@ -46,7 +44,7 @@ def conditional(
         f=f,
         full_cov=full_cov,
         q_sqrt=q_sqrt,
-        white=white,
+        whiten=whiten,
     )
     return f_mean, f_cov
 
@@ -61,7 +59,7 @@ def single_output_conditional(
     full_cov: Optional[bool] = False,
     full_output_cov: Optional[bool] = False,
     q_sqrt: Optional[Array] = None,
-    white: Optional[bool] = False,
+    whiten: Optional[bool] = False,
 ):
     """Single-output GP conditional.
     Xnew: [N, D]
@@ -95,7 +93,7 @@ def single_output_conditional(
                 f_,
                 full_cov=full_cov,
                 q_sqrt=q_sqrt_,
-                white=white,
+                whiten=whiten,
             )
 
         f_mean, f_cov = jax.vmap(
@@ -111,7 +109,7 @@ def single_output_conditional(
                 f_,
                 full_cov=full_cov,
                 q_sqrt=q_sqrt,
-                white=white,
+                whiten=whiten,
             )
 
         f_mean, f_cov = jax.vmap(
@@ -127,7 +125,7 @@ def base_conditional(
     f: Array,
     full_cov: Optional[bool] = False,
     q_sqrt: Optional[Array] = None,
-    white: Optional[bool] = False,
+    whiten: Optional[bool] = False,
 ):
     r"""Base conditional for single outputs.
 
@@ -140,14 +138,18 @@ def base_conditional(
     And
       q(g2) = N(g2; f, q_sqrt q_sqrtᵀ)
     This method computes the mean and (co)variance of
-      q(g1) = ∫ q(g2) p(g1 | g2)
+      q(g1) = ∫ q(g2) p(g1 | g2) =
+
+    If not whiten: q(g1) = N(g1; Knm Kmm^{-1} f, Knm Kmm^{-1} q_sqrt q_sqrt^T Kmm^{-1} Kmn + Knn - Knm (Kmm⁻¹) Km)
+    If whiten: q(g1) = N(g1; Knm Lm^{T}^{-1} f, Knm Lm^{T}^{-1} q_sqrt q_sqrt^T Lm^{-1} Kmn + Knn - Knm (Kmm⁻¹) Km)
+
     :param Kmn: [M, N], M = number of inducing points
     :param Kmm: [M, M]
     :param Knn: [N, N]  or  [N]
     :param f: [M]
     :param full_cov: bool
     :param q_sqrt: [M, M] (lower triangular) or [M] (diagonal)
-    :param white: bool
+    :param whiten: bool
     :return: mean [N] and (co)variance [N]  or [N, N]
     """
     Lm = linalg.cholesky(Kmm, lower=True)
@@ -158,7 +160,7 @@ def base_conditional(
         f=f,
         full_cov=full_cov,
         q_sqrt=q_sqrt,
-        white=white,
+        whiten=whiten,
     )
 
 
@@ -169,7 +171,7 @@ def base_conditional_with_lm(
     f: Array,
     full_cov: Optional[bool] = False,
     q_sqrt: Optional[Array] = None,
-    white: Optional[bool] = False,
+    whiten: Optional[bool] = False,
 ):
     """Same as base_conditional but expects the cholesky Lm instead of Kmm = Lm Lm.T
 
@@ -181,10 +183,12 @@ def base_conditional_with_lm(
     if full_cov:
         fvar = Knn - jnp.matmul(A.T, A)
     else:
+        if Knn.ndim == 2:
+            Knn = Knn.diagonal()
         fvar = Knn - jnp.sum(jnp.square(A), 0)
 
     # another backsubstitution in the unwhitened case
-    if not white:
+    if not whiten:
         A = linalg.solve_triangular(Lm.T, A, lower=False)  # [M, N]
 
     # conditional mean
@@ -192,7 +196,7 @@ def base_conditional_with_lm(
 
     # covariance due to inducing variables
     if q_sqrt is not None:
-        if q_sqrt.ndim == 1:
+        if q_sqrt.ndim == 1:  # diagonal, [M,]
             LTA = jnp.expand_dims(q_sqrt, axis=-1) * A  # [M, N]
         elif q_sqrt.ndim == 2:
             LTA = q_sqrt.T @ A  # [M, N]

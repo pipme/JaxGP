@@ -1,17 +1,13 @@
 from itertools import permutations
-from chex import assert_equal
 
 import jax.numpy as jnp
 import jax.random as jr
-from numpy import isin, sort
 import pytest
+from chex import assert_equal
 from jaxgp import kernels
-from jaxgp.kernels import (
-    RBF,
-    cross_covariance,
-    gram,
-)
+from jaxgp.kernels import RBF, cross_covariance, gram
 from jaxgp.parameters import initialise
+from numpy import isin, sort
 
 
 @pytest.mark.parametrize("kern", [RBF()])
@@ -33,7 +29,7 @@ def test_cross_covariance(kern, n1, n2):
     x1 = jnp.linspace(-1.0, 1.0, num=n1).reshape(-1, 1)
     x2 = jnp.linspace(-1.0, 1.0, num=n2).reshape(-1, 1)
     params, _, _ = initialise(kern)
-    kernel_matrix = cross_covariance(kern, x2, x1, params)
+    kernel_matrix = cross_covariance(kern, x1, x2, params)
     assert kernel_matrix.shape == (n1, n2)
 
 

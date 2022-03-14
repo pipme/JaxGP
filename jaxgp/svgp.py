@@ -152,6 +152,8 @@ class SVGP:
                 scale = 1.0
             return jnp.sum(var_exp) * scale - kl
 
+        return elbo
+
     def predict_f(
         self,
         params: Dict,
