@@ -2,17 +2,13 @@ from jax.config import config
 
 config.update("jax_debug_nans", True)
 from dataclasses import dataclass
-from operator import ne
 
 import jax.numpy as jnp
-from jax import random
-from pytest import param
 import jaxgp as jgp
+import jaxopt
 import numpy as np
 from jaxgp.sgpr import SGPR
-import jax
-from scipy.optimize import minimize
-import jaxopt
+
 
 # @dataclass(frozen=True)
 # class Datum:

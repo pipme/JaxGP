@@ -1,20 +1,11 @@
-from collections import namedtuple
-from typing import Dict, NamedTuple, Optional
+from typing import Optional
 
 import jax
 import jax.numpy as jnp
 import tensorflow_probability.substrates.jax.distributions as tfd
-from jax.scipy.linalg import cholesky, solve_triangular
 
-from gps import GPrior
-from jaxgp.likelihoods import Gaussian, Likelihood
-
-from .abstractions import InducingPoints
-from .config import Config, default_jitter
-from .kernels import cross_covariance
-from .parameters import build_transforms
-from .types import Array, Dataset
-from .utils import concat_dictionaries, inducingpoint_wrapper
+from .config import default_jitter
+from .types import Array
 
 
 def gauss_kl(q_mu: Array, q_sqrt: Array, Kp: Optional[Array] = None):
@@ -77,6 +68,6 @@ def single_gauss_kl(q_mu: Array, q_sqrt: Array, Kp: Optional[Array] = None):
     if q_diag:
         q = tfd.MultivariateNormalDiag(q_mu, q_sqrt)
     else:
-        q = tfd.MultivariateNormalFullCovariance(q_mu, q_sqrt)
+        q = tfd.MultivariateNormalTriL(q_mu, q_sqrt)
     kl_tf = tfd.kl_divergence(q, p)
     return kl_tf
