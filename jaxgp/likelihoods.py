@@ -12,7 +12,6 @@ from .types import Array
 
 @dataclass(repr=False)
 class Likelihood:
-    # num_datapoints: int  # The number of datapoints that the likelihood factorises over
     name: Optional[str] = "Likelihood"
 
     def __repr__(self):
@@ -92,6 +91,7 @@ class Gaussian(Likelihood):
 
     def predict_mean_and_var(self, params: Dict, Fmu, Fvar):
         return Fmu, Fvar + params["noise"]
+
 
 @dataclass(repr=False)
 class Bernoulli(Likelihood):

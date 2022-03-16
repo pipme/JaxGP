@@ -163,7 +163,7 @@ class SGPRPosterior:
         else:
             var = (
                 gram(
-                    self.gprior.kernel, X_new, params["kernel"], full_cov=True
+                    self.gprior.kernel, X_new, params["kernel"], full_cov=False
                 )
                 + jnp.sum(tmp2 ** 2, 0)
                 - jnp.sum(tmp1 ** 2, 0)

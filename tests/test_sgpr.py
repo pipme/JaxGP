@@ -33,11 +33,11 @@ def test_sgpr_qu():
     y = np.sin(X @ np.array([[-1.4], [0.5]])) + 0.5 * rng.randn(len(X), 1)
 
     train_data = jgp.Dataset(X=X, Y=y)
-    kernel = jgp.RBF(active_dims=[0, 1])
+    kernel = jgp.kernels.RBF(active_dims=[0, 1])
     model = SGPR(
         train_data=train_data,
         gprior=jgp.GPrior(kernel=kernel),
-        likelihood=jgp.Gaussian(num_datapoints=train_data.N),
+        likelihood=jgp.likelihoods.Gaussian(),
         inducing_points=Z,
     )
 
