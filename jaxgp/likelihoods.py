@@ -1,6 +1,4 @@
 import abc
-from multiprocessing.dummy import Array
-from random import gauss
 from typing import Callable, Dict, Optional
 
 import jax.numpy as jnp
@@ -14,7 +12,7 @@ from .types import Array
 
 @dataclass(repr=False)
 class Likelihood:
-    num_datapoints: int  # The number of datapoints that the likelihood factorises over
+    # num_datapoints: int  # The number of datapoints that the likelihood factorises over
     name: Optional[str] = "Likelihood"
 
     def __repr__(self):
@@ -81,7 +79,7 @@ class Gaussian(Likelihood):
     def transforms(self) -> Dict:
         return {"noise": Config.positive_bijector}
 
-    def variational_expectations(
+    def variational_expectation(
         self, params: Dict, Fmu: Array, Fvar: Array, Y: Array
     ):
         sigma_sq = params["noise"]
@@ -92,6 +90,8 @@ class Gaussian(Likelihood):
             axis=-1,
         )
 
+    def predict_mean_and_var(self, params: Dict, Fmu, Fvar):
+        return Fmu, Fvar + params["noise"]
 
 @dataclass(repr=False)
 class Bernoulli(Likelihood):

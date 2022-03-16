@@ -6,14 +6,13 @@ import jax.numpy as jnp
 from chex import dataclass
 from jax.scipy.linalg import cholesky, solve_triangular
 
-from gps import GPrior
-from jaxgp.likelihoods import Gaussian, Likelihood
-
 from .abstractions import InducingPoints
 from .conditionals import conditional
 from .config import Config, default_jitter
 from .divergences import gauss_kl
+from .gps import GPrior
 from .kernels import cross_covariance
+from .likelihoods import Gaussian, Likelihood
 from .parameters import build_transforms
 from .types import Array, Dataset
 from .utils import concat_dictionaries, inducingpoint_wrapper
@@ -150,7 +149,7 @@ class SVGP:
                 scale = num_data / minibatch_size
             else:
                 scale = 1.0
-            return jnp.sum(var_exp) * scale - kl
+            return sign * (jnp.sum(var_exp) * scale - kl)
 
         return elbo
 
@@ -164,11 +163,31 @@ class SVGP:
         return conditional(
             params["kernel"],
             Xnew,
-            params["inducing_variable"],
+            params["inducing_points"],
             self.gprior.kernel,
             params["q_mu"],
             full_cov,
             full_output_cov,
             params["q_sqrt"],
             whiten=self.whiten,
+        )
+
+    def predict_y(
+        self,
+        params: Dict,
+        Xnew: Array,
+        full_cov: Optional[bool] = False,
+        full_output_cov: Optional[bool] = False,
+    ):
+        """Compute the mean and (co)variance of function at Xnew."""
+        if full_cov or full_output_cov:
+            raise NotImplementedError(
+                "The predict_y method currently supports only the argument values full_cov=False and full_output_cov=False"
+            )
+
+        f_mean, f_cov = self.predict_f(
+            params, Xnew, full_cov=full_cov, full_output_cov=full_output_cov
+        )
+        return self.likelihood.predict_mean_and_var(
+            params["likelihood"], f_mean, f_cov
         )

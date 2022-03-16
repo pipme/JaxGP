@@ -1,19 +1,12 @@
-from abc import abstractmethod
-from audioop import cross
 from typing import Callable, Dict, Optional
 
 import jax
 import jax.numpy as jnp
 import jax.scipy.linalg as linalg
-import tensorflow_probability.substrates.jax.distributions as tfd
 
 from .config import default_jitter
-from .gps import GP, GPrior
 from .kernels import cross_covariance, gram
-from .likelihoods import Gaussian, Likelihood, NonConjugateLikelihoods
-from .parameters import copy_dict_structure
-from .types import Array, Dataset
-from .utils import concat_dictionaries
+from .types import Array
 
 
 def conditional(
