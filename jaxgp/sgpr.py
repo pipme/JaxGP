@@ -90,7 +90,7 @@ class SGPR:
         trace = trace_k - trace_q
 
         # log(det(B))
-        log_det_b = jnp.sum(jnp.log(jnp.diag(LB)))
+        log_det_b = 2 * jnp.sum(jnp.log(jnp.diag(LB)))
         # N * log(sigma^2)
         log_sigma_sq = num_data * jnp.log(sigma_sq)
 
@@ -142,7 +142,7 @@ class SGPR:
         Kuu = gram(
             self.gprior.kernel, params["inducing_points"], params["kernel"]
         )
-
+        Kuu = default_jitter(Kuu)
         sig = Kuu + (params["likelihood"]["noise"] ** -1) * Kuf @ Kuf.T
         sig_sqrt = linalg.cholesky(sig, lower=True)
         sig_sqrt_kuu = linalg.solve_triangular(sig_sqrt, Kuu, lower=True)
