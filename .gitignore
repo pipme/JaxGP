@@ -148,3 +148,6 @@ workspace.code-workspace
 .DS_store
 test.ipynb
 test.py
+jaxgp_version.py
+docs/api/summary
+_build/

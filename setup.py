@@ -10,7 +10,7 @@ from setuptools import find_packages, setup
 # PROJECT SPECIFIC
 
 NAME = "jaxgp"
-PACKAGES = find_packages(where="jaxgp")
+PACKAGES = find_packages(exclude=["tests"])
 META_PATH = os.path.join("jaxgp", "__init__.py")
 CLASSIFIERS = [
     "Development Status :: 4 - Beta",
@@ -25,10 +25,7 @@ CLASSIFIERS = [
 INSTALL_REQUIRES = ["jax", "jaxlib", "numpy", "matplotlib", "optax", "jaxopt"]
 EXTRA_REQUIRE = {
     "test": ["pytest>=3.6"],
-    "docs": [
-        "sphinx>=3.3",
-        "sphinx-book-theme",
-    ],
+    "docs": ["sphinx>=3.3", "sphinx-book-theme", "myst_nb"],
 }
 EXTRA_REQUIRE["coverage"] = EXTRA_REQUIRE["test"] + ["pytest-cov"]
 
@@ -69,7 +66,6 @@ if __name__ == "__main__":
         long_description=read("README.md"),
         long_description_content_type="text/markdown",
         packages=PACKAGES,
-        package_dir={"": "jaxgp"},
         include_package_data=True,
         python_requires=">=3.6",
         install_requires=INSTALL_REQUIRES,
