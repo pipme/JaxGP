@@ -7,12 +7,12 @@ config.update("jax_enable_x64", True)
 
 from jaxgp import gps, kernels, likelihoods, means
 from jaxgp.config import Config
+from jaxgp.datasets import Dataset
 from jaxgp.gps import GPrior
 from jaxgp.parameters import copy_dict_structure, initialise
 from jaxgp.posteriors import construct_posterior
 from jaxgp.sgpr import SGPR
 from jaxgp.svgp import SVGP
-from jaxgp.types import Dataset
 
 __author__ = "Chengkun Li"
 __email__ = "sjtulck@gmail.com"

@@ -1,6 +1,8 @@
 import numpy as np
 from torch.utils import data
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset as DatasetTorch
+
+from .helpers import Array, dataclass, field
 
 
 def numpy_collate(batch):
@@ -13,7 +15,39 @@ def numpy_collate(batch):
         return np.array(batch)
 
 
-class CustomDataset(Dataset):
+@dataclass
+class Dataset:
+    X: Array
+    Y: Array = None
+
+    def __post_init__(self):
+        if self.Y.ndim == 1:
+            self.Y = self.Y[..., None]
+        if self.X.ndim == 1:
+            self.X = self.X[..., None]
+        assert self.X.ndim == 2
+        assert self.Y.ndim == 2
+
+    def __repr__(self) -> str:
+        return (
+            f"- Number of datapoints: {self.X.shape[0]}\n- Dimension:"
+            f" {self.X.shape[1]}"
+        )
+
+    @property
+    def N(self) -> int:
+        return self.X.shape[0]
+
+    @property
+    def in_dim(self) -> int:
+        return self.X.shape[1]
+
+    @property
+    def out_dim(self) -> int:
+        return self.Y.shape[1]
+
+
+class CustomDataset(DatasetTorch):
     def __init__(self, X, Y, transform=None, target_transform=None):
         self.X = X
         self.Y = Y
@@ -52,3 +86,8 @@ class NumpyLoader(data.DataLoader):
             timeout=timeout,
             worker_init_fn=worker_init_fn,
         )
+
+
+if __name__ == "__main__":
+    d = Dataset(X=None)
+    print(d)

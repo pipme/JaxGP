@@ -1,9 +1,9 @@
 from typing import Optional
 
 import jax.numpy as jnp
-from chex import dataclass
 
 from .config import Config
+from .helpers import dataclass
 
 
 @dataclass

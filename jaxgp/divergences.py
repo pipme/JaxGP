@@ -5,7 +5,7 @@ import jax.numpy as jnp
 import tensorflow_probability.substrates.jax.distributions as tfd
 
 from .config import default_jitter
-from .types import Array
+from .helpers import Array
 
 
 def gauss_kl(q_mu: Array, q_sqrt: Array, Kp: Optional[Array] = None):

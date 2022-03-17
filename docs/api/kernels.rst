@@ -12,19 +12,6 @@ kernels package
 
     Kernel
     RBF
-    
-.. _compute:
-
-Compute Covariance Matrix
-----------------
-
-.. automodule:: jaxgp.kernels
-
-.. autosummary::
-   :toctree: summary
-
-   cross_covariance
-   gram
 
 .. _distance-metrics:
 

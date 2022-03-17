@@ -2,20 +2,19 @@ import abc
 from typing import Callable, Dict, Optional
 
 import jax.numpy as jnp
-from chex import dataclass
 from tensorflow_probability.substrates.jax import distributions as tfd
 
 from .config import Config
+from .helpers import Array, dataclass
 from .quadratures import gauss_hermite_quadrature
-from .types import Array
 
 
-@dataclass(repr=False)
+@dataclass
 class Likelihood:
     name: Optional[str] = "Likelihood"
 
     def __repr__(self):
-        return f"{self.name} likeßlihood function"
+        return f"{self.name} likelihood function"
 
     @property
     @abc.abstractmethod
@@ -59,7 +58,7 @@ class Likelihood:
         raise NotImplementedError
 
 
-@dataclass(repr=False)
+@dataclass
 class Gaussian(Likelihood):
     name: Optional[str] = "Gaussian"
 
@@ -93,7 +92,7 @@ class Gaussian(Likelihood):
         return Fmu, Fvar + params["noise"]
 
 
-@dataclass(repr=False)
+@dataclass
 class Bernoulli(Likelihood):
     name: Optional[str] = "Bernoulli"
 

@@ -4,14 +4,14 @@ from typing import Callable, Dict, Optional
 import jax.numpy as jnp
 import jax.scipy.linalg as linalg
 import tensorflow_probability.substrates.jax.distributions as tfd
-from chex import dataclass
 
 from .config import default_jitter
+from .datasets import Dataset
 from .gps import GP, GPrior
+from .helpers import Array, dataclass
 from .kernels import cross_covariance, gram
 from .likelihoods import Gaussian, Likelihood, NonConjugateLikelihoods
 from .parameters import copy_dict_structure
-from .types import Array, Dataset
 from .utils import concat_dictionaries
 
 

@@ -3,18 +3,18 @@ from typing import Dict, NamedTuple, Optional
 
 import jax
 import jax.numpy as jnp
-from chex import dataclass
 from jax.scipy.linalg import cholesky, solve_triangular
 
 from .abstractions import InducingPoints
 from .conditionals import conditional
 from .config import Config, default_jitter
+from .datasets import Dataset
 from .divergences import gauss_kl
 from .gps import GPrior
+from .helpers import Array, dataclass
 from .kernels import cross_covariance
 from .likelihoods import Gaussian, Likelihood
 from .parameters import build_transforms
-from .types import Array, Dataset
 from .utils import concat_dictionaries, inducingpoint_wrapper
 
 

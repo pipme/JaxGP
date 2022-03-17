@@ -10,15 +10,6 @@ import numpy as np
 from jaxgp.sgpr import SGPR
 
 
-# @dataclass(frozen=True)
-# class Datum:
-#     key: random.KeyArray = random.PRNGKey(42)
-#     X: Array = random.normal(key, (100, 2))
-#     Y: Array = random.normal(key, (100, 1))
-#     Z: Array = random.normal(key, (10, 2))
-#     Xs: Array = random.normal(key, (10, 1))
-#     lik = gpflow.likelihoods.Gaussian()
-#     kernel = gpflow.kernels.Matern32()
 @dataclass(frozen=True)
 class Datum:
     rng: np.random.RandomState = np.random.RandomState(0)

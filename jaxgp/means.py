@@ -2,13 +2,12 @@ import abc
 from typing import Dict, Optional
 
 import jax.numpy as jnp
-from chex import dataclass
 
 from .config import Config
-from .types import Array
+from .helpers import Array, dataclass
 
 
-@dataclass(repr=False)
+@dataclass
 class MeanFunction:
     output_dim: Optional[int] = 1
     name: Optional[str] = "Mean function"
@@ -35,7 +34,7 @@ class MeanFunction:
         raise NotImplementedError
 
 
-@dataclass(repr=False)
+@dataclass
 class Zero(MeanFunction):
     output_dim: Optional[int] = 1
     name: Optional[str] = "Zero mean function"
@@ -52,7 +51,7 @@ class Zero(MeanFunction):
         return {}
 
 
-@dataclass(repr=False)
+@dataclass
 class Constant(MeanFunction):
     output_dim: Optional[int] = 1
     name: Optional[str] = "Constant mean function"

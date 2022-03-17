@@ -3,13 +3,13 @@ from typing import Callable, Dict, Optional
 
 import jax.numpy as jnp
 import tensorflow_probability.substrates.jax.distributions as tfd
-from chex import dataclass
 from jax.scipy import linalg
 
+from .datasets import Dataset
+from .helpers import Array, dataclass
 from .kernels import Kernel, cross_covariance, gram
 from .likelihoods import Gaussian, Likelihood, NonConjugateLikelihoods
 from .means import MeanFunction, Zero
-from .types import Array, Dataset
 
 
 @dataclass
@@ -33,7 +33,7 @@ class GP:
         raise NotImplementedError
 
 
-@dataclass(repr=False)
+@dataclass
 class GPrior(GP):
     kernel: Kernel
     mean_function: Optional[MeanFunction] = Zero()

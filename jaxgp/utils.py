@@ -1,7 +1,7 @@
 from typing import Dict, List, Union
 
 from .abstractions import InducingPoints
-from .types import Array
+from .helpers import Array
 
 
 def concat_dictionaries(*args: List[Dict]) -> Dict:

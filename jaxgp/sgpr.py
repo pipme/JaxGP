@@ -8,12 +8,13 @@ import jax.scipy.linalg as linalg
 
 from .abstractions import InducingPoints
 from .config import default_jitter
+from .datasets import Dataset
 from .gps import GPrior
+from .helpers import Array
 from .kernels import cross_covariance, gram
 from .likelihoods import Gaussian, Likelihood
 from .parameters import build_transforms
 from .posteriors import SGPRPosterior
-from .types import Array, Dataset
 from .utils import concat_dictionaries, inducingpoint_wrapper
 
 

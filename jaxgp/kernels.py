@@ -1,14 +1,11 @@
 from abc import abstractmethod
-from functools import partial
 from typing import Callable, Dict, List, Optional, Tuple
 
 import jax.numpy as jnp
-from chex import dataclass
-from jax import jit, vmap
-from pytest import param
+from jax import vmap
 
 from .config import Config
-from .types import Array
+from .helpers import Array, dataclass
 
 
 class Distance:
@@ -46,7 +43,7 @@ class L2Distance(Distance):
         return jnp.sum(jnp.square(X1 - X2))
 
 
-@dataclass(repr=False)
+@dataclass
 class Kernel:
     active_dims: Optional[Tuple[int]] = (0,)
     stationary: Optional[bool] = False
@@ -82,7 +79,7 @@ class Kernel:
         raise NotImplementedError
 
 
-@dataclass(repr=False)
+@dataclass
 class RBF(Kernel):
     name: Optional[str] = "Radial basis function kernel"
     distance: Distance = L2Distance()
@@ -117,6 +114,7 @@ class RBF(Kernel):
 def gram(
     kernel: Kernel, inputs: Array, params: dict, full_cov: bool = True
 ) -> Array:
+    """Compute gram matrix of the inputs."""
     if full_cov:
         return vmap(
             lambda x1: vmap(lambda y1: kernel(x1, y1, params))(inputs)
@@ -126,6 +124,7 @@ def gram(
 
 
 def cross_covariance(
-    kernel: Kernel, x: Array, y: Array, params: dict
+    kernel: Kernel, X: Array, Y: Array, params: dict
 ) -> Array:
-    return vmap(lambda x1: vmap(lambda y1: kernel(x1, y1, params))(y))(x)
+    """Compute covariance matrix between X and Y."""
+    return vmap(lambda x1: vmap(lambda y1: kernel(x1, y1, params))(Y))(X)

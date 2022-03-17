@@ -5,8 +5,8 @@ import jax.numpy as jnp
 import jax.scipy.linalg as linalg
 
 from .config import default_jitter
+from .helpers import Array
 from .kernels import cross_covariance, gram
-from .types import Array
 
 
 def conditional(
