@@ -1,5 +1,3 @@
-from typing import Optional
-
 import jax.numpy as jnp
 
 from .config import Config

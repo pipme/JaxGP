@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Optional
+from typing import Dict, Optional
 
 import jax
 import jax.numpy as jnp

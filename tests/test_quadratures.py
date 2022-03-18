@@ -1,4 +1,5 @@
 import numpy as np
+
 from jaxgp.quadratures import gauss_hermite_quadrature
 
 

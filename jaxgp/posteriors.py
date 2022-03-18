@@ -1,4 +1,4 @@
-from abc import abstractmethod, abstractproperty
+from abc import abstractmethod
 from typing import Callable, Dict, Optional
 
 import jax.numpy as jnp
@@ -165,8 +165,8 @@ class SGPRPosterior:
                 gram(
                     self.gprior.kernel, X_new, params["kernel"], full_cov=False
                 )
-                + jnp.sum(tmp2 ** 2, 0)
-                - jnp.sum(tmp1 ** 2, 0)
+                + jnp.sum(tmp2**2, 0)
+                - jnp.sum(tmp1**2, 0)
             )
             var = jnp.tile(var[None, ...], [self.num_latent_gps, 1])
         return mean, var

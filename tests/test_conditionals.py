@@ -4,6 +4,7 @@ import jax.numpy as jnp
 import jax.random as jr
 import numpy as np
 import pytest
+
 from jaxgp.conditionals import base_conditional_with_lm
 
 

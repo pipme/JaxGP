@@ -1,7 +1,9 @@
 from distutils.command.build import build
-from jaxgp.parameters import build_transforms
-from jaxgp.config import Config
+
 import jax.numpy as jnp
+
+from jaxgp.config import Config
+from jaxgp.parameters import build_transforms
 
 
 def test_build_transforms():

@@ -1,5 +1,4 @@
-from collections import namedtuple
-from typing import Dict, NamedTuple, Optional
+from typing import Dict, Optional
 
 import jax
 import jax.numpy as jnp

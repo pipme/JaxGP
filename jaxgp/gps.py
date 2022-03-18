@@ -1,4 +1,4 @@
-from abc import abstractmethod, abstractproperty
+from abc import abstractmethod
 from typing import Callable, Dict, Optional
 
 import jax.numpy as jnp

@@ -5,6 +5,7 @@ config.update("jax_debug_nans", True)
 import jax.numpy as jnp
 import jax.random as jr
 import numpy as np
+
 from jaxgp.divergences import gauss_kl, single_gauss_kl
 
 

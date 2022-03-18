@@ -1,4 +1,3 @@
-import copy
 from collections import namedtuple
 from typing import Dict, NamedTuple, Optional, Tuple
 
@@ -111,8 +110,8 @@ class SGPR:
         c = linalg.solve_triangular(LB, Aerr, lower=True) / sigma
 
         # sigma^2 * y^T @ y
-        err_inner_prod = jnp.sum(err ** 2) / sigma_sq
-        c_inner_prod = jnp.sum(c ** 2)
+        err_inner_prod = jnp.sum(err**2) / sigma_sq
+        c_inner_prod = jnp.sum(c**2)
 
         quad = -0.5 * (err_inner_prod - c_inner_prod)
         return quad

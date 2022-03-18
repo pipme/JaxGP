@@ -87,12 +87,16 @@ class RBF(Kernel):
             "outputscale": jnp.array([1.0]),
         }
 
-    def __call__(self, x: jnp.DeviceArray, y: jnp.DeviceArray, params: dict) -> Array:
+    def __call__(
+        self, x: jnp.DeviceArray, y: jnp.DeviceArray, params: dict
+    ) -> Array:
         for key, _ in self._params.items():
             assert self._params[key].shape == params[key].shape
         x = self.slice_input(x) / params["lengthscale"]
         y = self.slice_input(y) / params["lengthscale"]
-        K = params["outputscale"] * jnp.exp(-0.5 * self.distance.squared_distance(x, y))
+        K = params["outputscale"] * jnp.exp(
+            -0.5 * self.distance.squared_distance(x, y)
+        )
         return K.squeeze()
 
     @property
@@ -103,14 +107,20 @@ class RBF(Kernel):
         }
 
 
-def gram(kernel: Kernel, inputs: Array, params: dict, full_cov: bool = True) -> Array:
+def gram(
+    kernel: Kernel, inputs: Array, params: dict, full_cov: bool = True
+) -> Array:
     """Compute gram matrix of the inputs."""
     if full_cov:
-        return vmap(lambda x1: vmap(lambda y1: kernel(x1, y1, params))(inputs))(inputs)
+        return vmap(
+            lambda x1: vmap(lambda y1: kernel(x1, y1, params))(inputs)
+        )(inputs)
     else:
         return vmap(lambda x: kernel(x, x, params))(inputs)
 
 
-def cross_covariance(kernel: Kernel, X: Array, Y: Array, params: dict) -> Array:
+def cross_covariance(
+    kernel: Kernel, X: Array, Y: Array, params: dict
+) -> Array:
     """Compute covariance matrix between X and Y."""
     return vmap(lambda x1: vmap(lambda y1: kernel(x1, y1, params))(Y))(X)

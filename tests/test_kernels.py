@@ -4,10 +4,11 @@ import jax.numpy as jnp
 import jax.random as jr
 import pytest
 from chex import assert_equal
+from numpy import isin, sort
+
 from jaxgp import kernels
 from jaxgp.kernels import RBF, cross_covariance, gram
 from jaxgp.parameters import initialise
-from numpy import isin, sort
 
 
 @pytest.mark.parametrize("kern", [RBF()])
