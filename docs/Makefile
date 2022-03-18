@@ -25,3 +25,9 @@ notebooks: $(PAGES)
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+
+.PHONY: github
+github: $(PAGES)
+	@make html
+	@cp -a _build/html/. html
+	@touch ./html/.nojekyll

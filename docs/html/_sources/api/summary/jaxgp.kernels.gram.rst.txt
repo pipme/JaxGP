@@ -1,0 +1,6 @@
+﻿jaxgp.kernels.gram
+==================
+
+.. currentmodule:: jaxgp.kernels
+
+.. autofunction:: gram

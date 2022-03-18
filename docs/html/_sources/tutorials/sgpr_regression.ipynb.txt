@@ -1,0 +1,214 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import sys\n",
+    "\n",
+    "sys.path.insert(0, \"../..\")\n",
+    "\n",
+    "%load_ext autoreload\n",
+    "%autoreload 2"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "(sgpr)=\n",
+    "\n",
+    "# SGPR Regression"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from jax.config import config\n",
+    "\n",
+    "config.update(\"jax_debug_nans\", True)\n",
+    "import jax\n",
+    "import jaxgp as jgp\n",
+    "import jax.numpy as jnp\n",
+    "from jaxgp.sgpr import SGPR\n",
+    "import jaxopt\n",
+    "import numpy as np\n",
+    "import matplotlib.pyplot as plt"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "rng = np.random.RandomState(123)\n",
+    "\n",
+    "\n",
+    "def readCsvFile(fileName):\n",
+    "    return np.loadtxt(fileName).reshape(-1, 1)\n",
+    "\n",
+    "\n",
+    "def getTrainingTestData():\n",
+    "    overallX = readCsvFile(\"data/snelson_train_inputs.dat\")\n",
+    "    overallY = readCsvFile(\"data/snelson_train_outputs.dat\")\n",
+    "\n",
+    "    trainIndices = []\n",
+    "    testIndices = []\n",
+    "\n",
+    "    nPoints = overallX.shape[0]\n",
+    "\n",
+    "    for index in range(nPoints):\n",
+    "        if index % 4 == 0:\n",
+    "            trainIndices.append(index)\n",
+    "        else:\n",
+    "            testIndices.append(index)\n",
+    "\n",
+    "    Xtrain = overallX[trainIndices, :]\n",
+    "    Xtest = overallX[testIndices, :]\n",
+    "    Ytrain = overallY[trainIndices, :]\n",
+    "    Ytest = overallY[testIndices, :]\n",
+    "\n",
+    "    return Xtrain, Ytrain, Xtest, Ytest\n",
+    "\n",
+    "\n",
+    "X, y, Xtest, ytest = getTrainingTestData()\n",
+    "Z = X.copy()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "train_data = jgp.Dataset(X=X, Y=y)\n",
+    "kernel = jgp.kernels.RBF(active_dims=[0])\n",
+    "model = SGPR(\n",
+    "    train_data=train_data,\n",
+    "    gprior=jgp.GPrior(kernel=kernel),\n",
+    "    likelihood=jgp.likelihoods.Gaussian(),\n",
+    "    inducing_points=Z,\n",
+    ")\n",
+    "params, constrain_trans, unconstrain_trans = jgp.initialise(model)\n",
+    "posterior = model.posterior()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# print params' shape info\n",
+    "import copy\n",
+    "\n",
+    "params_container = copy.deepcopy(params)\n",
+    "params_container = jax.tree_map(lambda v: v.shape, params_container)\n",
+    "print(params_container)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "train_data = jgp.Dataset(X=X, Y=y)\n",
+    "kernel = jgp.kernels.RBF(active_dims=jnp.arange(X.shape[-1]))\n",
+    "model = SGPR(\n",
+    "    train_data=train_data,\n",
+    "    gprior=jgp.GPrior(kernel=kernel),\n",
+    "    likelihood=jgp.likelihoods.Gaussian(),\n",
+    "    inducing_points=Z,\n",
+    ")\n",
+    "\n",
+    "params, constrain_trans, unconstrain_trans = jgp.initialise(model)\n",
+    "raw_params = unconstrain_trans(params)\n",
+    "neg_elbo = model.build_elbo(sign=-1.0)\n",
+    "print(\"Initial negative elbo = \", neg_elbo(raw_params))\n",
+    "solver = jaxopt.ScipyMinimize(fun=neg_elbo, jit=True, options={\"disp\": True})\n",
+    "soln = solver.run(raw_params)\n",
+    "# Remember to transform since the optimization is in unconstrained space\n",
+    "final_params = constrain_trans(soln.params)\n",
+    "print(\"After optimization negative elbo = \", neg_elbo(soln.params))\n",
+    "\n",
+    "posterior = model.posterior()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "Xtest = jnp.linspace(-3, 10, 100)\n",
+    "pred_mean, pred_var = posterior.predict_f(Xtest, final_params, full_cov=False)\n",
+    "plt.plot(X, y, \"o\", color=\"k\", markersize=2)\n",
+    "plt.plot(\n",
+    "    final_params[\"inducing_points\"], np.zeros_like(Z), \"x\", color=\"tab:red\"\n",
+    ")\n",
+    "plt.plot(Xtest, pred_mean, color=\"tab:orange\", linewidth=2)\n",
+    "plt.fill_between(\n",
+    "    Xtest.squeeze(),\n",
+    "    pred_mean.squeeze() - 2 * np.sqrt(pred_var.squeeze()),\n",
+    "    pred_mean.squeeze() + 2 * np.sqrt(pred_var.squeeze()),\n",
+    "    alpha=0.5,\n",
+    "    color=\"tab:blue\",\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "qu_mean, qu_cov = model.compute_qu(final_params)\n",
+    "f_at_Z_mean, f_at_Z_cov = posterior.predict_f(\n",
+    "    final_params[\"inducing_points\"], final_params, full_cov=True\n",
+    ")\n",
+    "assert jnp.allclose(qu_mean, f_at_Z_mean, rtol=1e-5, atol=1e-4)\n",
+    "assert jnp.allclose(\n",
+    "    qu_cov.reshape(1, 50, 50), f_at_Z_cov, rtol=1e-5, atol=1e-5\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "interpreter": {
+   "hash": "73de991c5b87fa789d9b193d807aa508bc59c930638e53d55560bd0f6da949df"
+  },
+  "kernelspec": {
+   "display_name": "py39_forge",
+   "language": "python",
+   "name": "py39_forge"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.9.9"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
