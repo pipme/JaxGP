@@ -31,3 +31,4 @@ github: $(PAGES)
 	@make html
 	@cp -a _build/html/. html
 	@touch ./html/.nojekyll
+	@mv html ../html
