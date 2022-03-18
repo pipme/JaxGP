@@ -37,8 +37,8 @@ def __dataclass_transform__(
 
 
 @__dataclass_transform__()
-def dataclass(clz: Type[Any]) -> Type[Any]:
-    data_clz: Any = dataclasses.dataclass()(clz)
+def dataclass(clz: Type[Any], /, *, frozen=False) -> Type[Any]:
+    data_clz: Any = dataclasses.dataclass(frozen=frozen)(clz)
     meta_fields = []
     data_fields = []
     for name, field_info in data_clz.__dataclass_fields__.items():
@@ -64,9 +64,7 @@ def dataclass(clz: Type[Any]) -> Type[Any]:
         kwargs = dict(meta_args + data_args)
         return data_clz(**kwargs)
 
-    jax.tree_util.register_pytree_node(
-        data_clz, iterate_clz, clz_from_iterable
-    )
+    jax.tree_util.register_pytree_node(data_clz, iterate_clz, clz_from_iterable)
 
     # Hack to make this class act as a tuple when unpacked
     data_clz.iter_elems = lambda self: iterate_clz(self)[0].__iter__()

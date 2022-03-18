@@ -18,7 +18,7 @@ def numpy_collate(batch):
 @dataclass
 class Dataset:
     X: Array
-    Y: Array = None
+    Y: Array
 
     def __post_init__(self):
         if self.Y.ndim == 1:
@@ -86,8 +86,3 @@ class NumpyLoader(data.DataLoader):
             timeout=timeout,
             worker_init_fn=worker_init_fn,
         )
-
-
-if __name__ == "__main__":
-    d = Dataset(X=None)
-    print(d)

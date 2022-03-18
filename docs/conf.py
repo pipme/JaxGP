@@ -53,5 +53,5 @@ execution_timeout = -1
 
 autodoc_type_aliases = {
     "Array": "jaxgp.helpers.Array",
-    "Dataset": "jaxgp.helpers.Dataset",
+    "Dataset": "jaxgp.datasets.Dataset",
 }

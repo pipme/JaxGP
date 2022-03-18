@@ -67,7 +67,7 @@ if __name__ == "__main__":
         long_description_content_type="text/markdown",
         packages=PACKAGES,
         include_package_data=True,
-        python_requires=">=3.6",
+        python_requires=">=3.8",
         install_requires=INSTALL_REQUIRES,
         extras_require=EXTRA_REQUIRE,
         classifiers=CLASSIFIERS,
