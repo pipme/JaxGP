@@ -1,9 +1,0 @@
-﻿Config
-======
-
-.. currentmodule:: jaxgp.config
-
-.. autoclass:: Config
-   :show-inheritance:
-   :members:
-   :inherited-members:

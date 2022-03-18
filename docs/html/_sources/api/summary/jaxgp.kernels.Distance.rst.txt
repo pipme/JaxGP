@@ -1,9 +1,0 @@
-﻿Distance
-========
-
-.. currentmodule:: jaxgp.kernels
-
-.. autoclass:: Distance
-   :show-inheritance:
-   :members:
-   :inherited-members:

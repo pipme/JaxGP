@@ -1,9 +1,0 @@
-﻿L1Distance
-==========
-
-.. currentmodule:: jaxgp.kernels
-
-.. autoclass:: L1Distance
-   :show-inheritance:
-   :members:
-   :inherited-members:
