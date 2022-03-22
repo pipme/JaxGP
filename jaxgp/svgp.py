@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 import jax
 import jax.numpy as jnp
@@ -23,7 +23,7 @@ class SVGP:
         gprior: GPrior,
         likelihood: Likelihood,
         inducing_points: InducingPoints,
-        num_latent_gps: Optional[int] = 1,
+        num_latent_gps: int = 1,
         q_diag: bool = False,
         q_mu: Optional[Array] = None,
         q_sqrt: Optional[Array] = None,
@@ -131,10 +131,10 @@ class SVGP:
             K = default_jitter(K)
             return gauss_kl(params["q_mu"], params["q_sqrt"], Kp=K)
 
-    def build_elbo(self, num_data: Optional[int] = None, sign=1.0):
+    def build_elbo(self, num_data: Optional[int] = None, sign: float = 1.0):
         constrain_trans, unconstrain_trans = build_transforms(self.transforms)
 
-        def elbo(raw_params: Dict, data: Dataset):
+        def elbo(raw_params: Dict, data: Dataset) -> Array:
             params = constrain_trans(raw_params)
             X, Y = data.X, data.Y
             kl = self.prior_kl(params)
@@ -156,9 +156,9 @@ class SVGP:
         self,
         params: Dict,
         Xnew: Array,
-        full_cov: Optional[bool] = False,
-        full_output_cov: Optional[bool] = False,
-    ):
+        full_cov: bool = False,
+        full_output_cov: bool = False,
+    ) -> Tuple[Array, Array]:
         return conditional(
             params["kernel"],
             Xnew,
@@ -175,8 +175,8 @@ class SVGP:
         self,
         params: Dict,
         Xnew: Array,
-        full_cov: Optional[bool] = False,
-        full_output_cov: Optional[bool] = False,
+        full_cov: bool = False,
+        full_output_cov: bool = False,
     ):
         """Compute the mean and (co)variance of function at Xnew."""
         if full_cov or full_output_cov:

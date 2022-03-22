@@ -13,7 +13,7 @@ from .quadratures import gauss_hermite_quadrature
 class Likelihood:
     name: Optional[str] = "Likelihood"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.name} likelihood function"
 
     @property
@@ -109,7 +109,7 @@ class Bernoulli(Likelihood):
 
     @property
     def predictive_moment_fn(self) -> Callable:
-        def moment_fn(mean: jnp.DeviceArray, variance: jnp.DeviceArray):
+        def moment_fn(mean: Array, variance: Array):
             rv = self.link_function(mean / jnp.sqrt(1 + variance))
             return rv
 

@@ -1,10 +1,10 @@
-from typing import Dict, List, Union
+from typing import Dict, Union
 
 from .abstractions import InducingPoints
 from .helpers import Array
 
 
-def concat_dictionaries(*args: List[Dict]) -> Dict:
+def concat_dictionaries(*args: Dict) -> Dict:
     """
     Append one dictionary below another. If duplicate keys exist, then the key-value pair of the last supplied
     dictionary will be used.

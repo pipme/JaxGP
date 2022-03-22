@@ -15,11 +15,11 @@ from .means import MeanFunction, Zero
 @dataclass
 class GP:
     @abstractmethod
-    def mean(self) -> Callable[[Dataset], Array]:
+    def mean(self, params: Dict) -> Callable[[Array], Array]:
         raise NotImplementedError
 
     @abstractmethod
-    def variance(self) -> Callable[[Dataset], Array]:
+    def variance(self, params: Dict) -> Callable[[Array], Array]:
         raise NotImplementedError
 
     @property
@@ -36,26 +36,24 @@ class GP:
 @dataclass
 class GPrior(GP):
     kernel: Kernel
-    mean_function: Optional[MeanFunction] = Zero()
+    mean_function: MeanFunction = Zero()
     name: Optional[str] = "GPrior"
 
-    # def __mul__(self, other: Likelihood):
-    #     return construct_posterior(prior=self, likelihood=other)
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self._params = {
             "kernel": self.kernel.params,
             "mean_function": self.mean_function.params,
         }
 
     def mean(self, params: dict) -> Callable[[Array], Array]:
-        def mean_fn(X: Array):
+        def mean_fn(X: Array) -> Array:
             mu = self.mean_function(X, params["mean_function"])
             return mu
 
         return mean_fn
 
     def variance(self, params: dict) -> Callable[[Array], Array]:
-        def variance_fn(X: Array):
+        def variance_fn(X: Array) -> Array:
             Kff = gram(self.kernel, X, params["kernel"])
             jitter_matrix = jnp.eye(X.shape[0]) * 1e-8
             covariance_matrix = Kff + jitter_matrix

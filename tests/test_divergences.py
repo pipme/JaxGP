@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# mypy: ignore-errors
+
 from jax.config import config
 
 config.update("jax_debug_nans", True)

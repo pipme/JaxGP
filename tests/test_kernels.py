@@ -1,10 +1,10 @@
-from itertools import permutations
+# -*- coding: utf-8 -*-
+# mypy: ignore-errors
 
 import jax.numpy as jnp
 import jax.random as jr
 import pytest
 from chex import assert_equal
-from numpy import isin, sort
 
 from jaxgp import kernels
 from jaxgp.kernels import RBF, cross_covariance, gram

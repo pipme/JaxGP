@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# mypy: ignore-errors
+
 import numpy as np
 
 from jaxgp.quadratures import gauss_hermite_quadrature

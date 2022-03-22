@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 import jax
 import jax.numpy as jnp
@@ -15,11 +15,11 @@ def conditional(
     X: Array,
     kernel,
     f: Array,
-    full_cov: Optional[bool] = False,
-    full_output_cov: Optional[bool] = False,
+    full_cov: bool = False,
+    full_output_cov: bool = False,
     q_sqrt: Optional[Array] = None,
-    whiten: Optional[bool] = False,
-):
+    whiten: bool = False,
+) -> Tuple[Array, Array]:
     """GP Conditional.
 
     Multidispatch handles changing implementation for multioutput etc
@@ -49,11 +49,11 @@ def single_output_conditional(
     # inducing_variable: InducingVariable,
     kernel,
     f: Array,
-    full_cov: Optional[bool] = False,
-    full_output_cov: Optional[bool] = False,
+    full_cov: bool = False,
+    full_output_cov: bool = False,
     q_sqrt: Optional[Array] = None,
-    whiten: Optional[bool] = False,
-):
+    whiten: bool = False,
+) -> Tuple[Array, Array]:
     """Single-output GP conditional.
     Xnew: [N, D]
     X: [M, D]
@@ -70,6 +70,18 @@ def single_output_conditional(
         out_axes = (-1, 0)
     else:  # [num_data, output_dim]
         out_axes = (-1, -1)
+
+    def base_conditional_wrapper(f_, q_sqrt_):  # type: ignore
+        return base_conditional(
+            Kmn,
+            Kmm,
+            Knn,
+            f_,
+            full_cov=full_cov,
+            q_sqrt=q_sqrt_,
+            whiten=whiten,
+        )
+
     if q_sqrt is not None:
         if q_sqrt.ndim == 2:  # [M, num_latent_gps]
             in_axes = (-1, -1)
@@ -78,36 +90,13 @@ def single_output_conditional(
         else:
             raise ValueError("Bad dimension for q_sqrt: %s" % str(q_sqrt.ndim))
 
-        def base_conditional_wrapper(f_, q_sqrt_):
-            return base_conditional(
-                Kmn,
-                Kmm,
-                Knn,
-                f_,
-                full_cov=full_cov,
-                q_sqrt=q_sqrt_,
-                whiten=whiten,
-            )
-
         f_mean, f_cov = jax.vmap(
             base_conditional_wrapper, in_axes=in_axes, out_axes=out_axes
         )(f, q_sqrt)
     else:
-
-        def base_conditional_wrapper(f_):
-            return base_conditional(
-                Kmn,
-                Kmm,
-                Knn,
-                f_,
-                full_cov=full_cov,
-                q_sqrt=q_sqrt,
-                whiten=whiten,
-            )
-
         f_mean, f_cov = jax.vmap(
             base_conditional_wrapper, in_axes=-1, out_axes=out_axes
-        )(f)
+        )(f, q_sqrt)
     return f_mean, f_cov
 
 
@@ -119,7 +108,7 @@ def base_conditional(
     full_cov: Optional[bool] = False,
     q_sqrt: Optional[Array] = None,
     whiten: Optional[bool] = False,
-):
+) -> Tuple[Array, Array]:
     r"""Base conditional for single outputs.
 
     Handling of output dimensions (independent/correlated) will be separate.
@@ -165,7 +154,7 @@ def base_conditional_with_lm(
     full_cov: Optional[bool] = False,
     q_sqrt: Optional[Array] = None,
     whiten: Optional[bool] = False,
-):
+) -> Tuple[Array, Array]:
     """Same as base_conditional but expects the cholesky Lm instead of Kmm = Lm Lm.T
 
     Lm can be precomputed, improving performance.
@@ -182,7 +171,7 @@ def base_conditional_with_lm(
 
     # another backsubstitution in the unwhitened case
     if not whiten:
-        A = linalg.solve_triangular(Lm.T, A, lower=False)  # [M, N]
+        A = linalg.solve_triangular(Lm.T, A, lower=False)  # type: ignore #  [M, N]
 
     # conditional mean
     fmean = A.T @ f  # [N]
@@ -192,7 +181,7 @@ def base_conditional_with_lm(
         if q_sqrt.ndim == 1:  # diagonal, [M,]
             LTA = jnp.expand_dims(q_sqrt, axis=-1) * A  # [M, N]
         elif q_sqrt.ndim == 2:
-            LTA = q_sqrt.T @ A  # [M, N]
+            LTA = q_sqrt.T @ A  # type: ignore # [M, N]
         else:
             raise ValueError("Bad dimension for q_sqrt: %s" % str(q_sqrt.ndim))
 

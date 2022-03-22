@@ -1,4 +1,5 @@
-from email.mime import base
+# -*- coding: utf-8 -*-
+# mypy: ignore-errors
 
 import jax.numpy as jnp
 import jax.random as jr

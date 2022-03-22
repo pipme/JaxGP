@@ -8,7 +8,7 @@ from .config import default_jitter
 from .helpers import Array
 
 
-def gauss_kl(q_mu: Array, q_sqrt: Array, Kp: Optional[Array] = None):
+def gauss_kl(q_mu: Array, q_sqrt: Array, Kp: Optional[Array] = None) -> Array:
     """KL divergence KL[q(x) || p(x)] between two multivariate normal dists.
 
     This function handles sets of independent multivariate normals, e.g.
@@ -42,7 +42,9 @@ def gauss_kl(q_mu: Array, q_sqrt: Array, Kp: Optional[Array] = None):
     return kl_sum
 
 
-def single_gauss_kl(q_mu: Array, q_sqrt: Array, Kp: Optional[Array] = None):
+def single_gauss_kl(
+    q_mu: Array, q_sqrt: Array, Kp: Optional[Array] = None
+) -> Array:
     """KL divergence KL[q(x) || p(x)] between two multivariate normal dists.
 
     Dists are given by,

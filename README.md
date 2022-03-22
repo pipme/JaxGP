@@ -1,6 +1,6 @@
 # JaxGP
 
-A Gaussian Process library written in Jax.
+A Gaussian Process library written in Jax. Documentation is available on https://pipme.github.io/JaxGP/.
 
 Largely inspired by the following projects:
 

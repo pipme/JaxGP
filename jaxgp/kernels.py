@@ -45,13 +45,13 @@ class L2Distance(Distance):
 
 @dataclass
 class Kernel:
-    active_dims: Optional[Tuple[int]] = (0,)
+    active_dims: Tuple[int] = (0,)
     stationary: Optional[bool] = False
     spectral: Optional[bool] = False
     name: Optional[str] = "Kernel"
-    _params: Optional[Dict] = field(default_factory=dict)
+    _params: Dict = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.ndims = len(self.active_dims)
 
     @abstractmethod
@@ -62,7 +62,7 @@ class Kernel:
         return x[..., self.active_dims]
 
     @property
-    def ard(self):
+    def ard(self) -> bool:
         return True if self.ndims > 1 else False
 
     @property
@@ -71,7 +71,7 @@ class Kernel:
 
     @property
     @abstractmethod
-    def transforms(self):
+    def transforms(self) -> Dict:
         raise NotImplementedError
 
 
@@ -80,16 +80,14 @@ class RBF(Kernel):
     name: Optional[str] = "Radial basis function kernel"
     distance: Distance = L2Distance()
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.ndims = len(self.active_dims)
         self._params = {
             "lengthscale": jnp.array([1.0] * self.ndims),
             "outputscale": jnp.array([1.0]),
         }
 
-    def __call__(
-        self, x: jnp.DeviceArray, y: jnp.DeviceArray, params: dict
-    ) -> Array:
+    def __call__(self, x: Array, y: Array, params: dict) -> Array:
         for key, _ in self._params.items():
             assert self._params[key].shape == params[key].shape
         x = self.slice_input(x) / params["lengthscale"]
@@ -100,7 +98,7 @@ class RBF(Kernel):
         return K.squeeze()
 
     @property
-    def transforms(self):
+    def transforms(self) -> Dict:
         return {
             "outputscale": Config.positive_bijector,
             "lengthscale": Config.positive_bijector,
