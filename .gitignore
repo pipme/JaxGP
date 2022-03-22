@@ -141,8 +141,6 @@ cython_debug/
 # Extras
 .vscode/
 .idea/
-examples/_debug*
-examples/testing/*
 _debug/
 workspace.code-workspace
 .DS_store
@@ -151,3 +149,4 @@ test.py
 jaxgp_version.py
 docs/api/summary
 _build/
+examples/

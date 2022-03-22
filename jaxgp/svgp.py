@@ -159,7 +159,7 @@ class SVGP:
         full_cov: bool = False,
         full_output_cov: bool = False,
     ) -> Tuple[Array, Array]:
-        return conditional(
+        mu, var = conditional(
             params["kernel"],
             Xnew,
             params["inducing_points"],
@@ -170,6 +170,7 @@ class SVGP:
             params["q_sqrt"],
             whiten=self.whiten,
         )
+        return mu + self.gprior.mean(params)(Xnew), var
 
     def predict_y(
         self,

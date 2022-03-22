@@ -80,8 +80,8 @@ class Quadratic(MeanFunction):
         }
 
     def __call__(self, x: Array, params: Dict) -> Array:
-        return params["m0"] + 0.5 * jnp.sum(
-            ((x - params["xm"]) / params["scale"]) ** 2, -1
+        return params["m0"] - 0.5 * jnp.sum(
+            ((x - params["xm"]) / params["scale"]) ** 2, -1, keepdims=True
         )
 
     @property
