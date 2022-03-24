@@ -180,14 +180,15 @@ class SVGP:
         full_output_cov: bool = False,
     ):
         """Compute the mean and (co)variance of function at Xnew."""
-        if full_cov or full_output_cov:
+        if full_output_cov:
             raise NotImplementedError(
-                "The predict_y method currently supports only the argument values full_cov=False and full_output_cov=False"
+                "The predict_y method currently supports only the argument values full_output_cov=False"
             )
 
         f_mean, f_cov = self.predict_f(
             params, Xnew, full_cov=full_cov, full_output_cov=full_output_cov
         )
+
         return self.likelihood.predict_mean_and_var(
-            params["likelihood"], f_mean, f_cov
+            params["likelihood"], f_mean, f_cov, full_cov
         )

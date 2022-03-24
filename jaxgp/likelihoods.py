@@ -1,5 +1,5 @@
 import abc
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, Optional, Tuple
 
 import jax.numpy as jnp
 from tensorflow_probability.substrates.jax import distributions as tfd
@@ -50,6 +50,7 @@ class Likelihood:
         This only works if the broadcasting dimension of the statistics of q(f) (mean and variance)
         are broadcastable with that of the data Y.
 
+
         :param Fmu: mean function evaluation Tensor, with shape [..., latent_dim]
         :param Fvar: variance of function evaluation Tensor, with shape [..., latent_dim]
         :param Y: observation Tensor, with shape [..., observation_dim]:
@@ -68,7 +69,7 @@ class Gaussian(Likelihood):
 
     @property
     def link_function(self) -> Callable:
-        def identity_fn(x):
+        def identity_fn(x):  # type: ignore
             return x
 
         return identity_fn
@@ -88,8 +89,43 @@ class Gaussian(Likelihood):
             axis=-1,
         )
 
-    def predict_mean_and_var(self, params: Dict, Fmu, Fvar):
-        return Fmu, Fvar + params["noise"]
+    def predict_mean_and_var(
+        self, params: Dict, Fmu: Array, Fvar: Array, full_cov: bool = False
+    ) -> Tuple[Array, Array]:
+        """Predict mean and var/cov for y.
+
+        Parameters
+        ----------
+        params : Dict
+            Parameter dictionary.
+        Fmu : Array
+            Mean values, with shape [N, latent_dim].
+        Fvar : Array
+            Variance or covariance matrix values, with shape [N, latent_dim]
+            or [latent_dim, N, N].
+
+        full_cov : bool, optional
+            Whether to compute covariance matrix, defalut=False.
+
+        Returns
+        -------
+        Ymu: Array
+            Mean values.
+        Yvar: Array
+            Variance or covariance matrix values.
+        """
+        if full_cov:
+            assert Fvar.ndim >= 3
+            # For details, see discussions in https://github.com/google/jax/issues/2680#issuecomment-804269672
+            i, j = jnp.diag_indices(min(Fvar.shape[-2:]))
+            Ymu = Fmu
+            Yvar = Fvar.at[..., i, j].add(params["noise"])
+            return Ymu, Yvar
+        else:
+            assert Fvar.ndim == 2
+            Ymu = Fmu
+            Yvar = Fvar + params["noise"]
+        return Ymu, Yvar
 
 
 @dataclass

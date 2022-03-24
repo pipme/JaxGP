@@ -36,7 +36,7 @@ class Zero(MeanFunction):
     name: str = "Zero mean function"
     _params: Dict = field(default_factory=dict)
 
-    def __call__(self, x: Array, params: Dict) -> Array:
+    def __call__(self, x: Array, params: Optional[Dict] = None) -> Array:
         out_shape = (x.shape[0], self.output_dim)
         return jnp.zeros(shape=out_shape)
 
