@@ -1,6 +1,0 @@
-﻿jaxgp.kernels.cross\_covariance
-===============================
-
-.. currentmodule:: jaxgp.kernels
-
-.. autofunction:: cross_covariance
