@@ -140,7 +140,7 @@ class HeteroskedasticGaussian(Likelihood):
         Whether the noise variance vector is provided by user. If True, the
         noise vector need to be provided as ``sigma_sq``. ``sigma_sq``'s shape
         can be (N,), (N, 1) or (N, latent_dim). If False, ``num_data`` need to
-        be initialized and the noise params are initialized with ones.
+        be initialized and the noise params are set to ones as default.
     """
 
     num_data: Optional[int] = None
@@ -223,7 +223,7 @@ class HeteroskedasticGaussian(Likelihood):
             # For details, see discussions in https://github.com/google/jax/issues/2680#issuecomment-804269672
             i, j = jnp.diag_indices(min(Fvar.shape[-2:]))
             Ymu = Fmu
-            sigma_sq = jnp.transpose(sigma_sq)
+            sigma_sq = jnp.transpose(sigma_sq)  # [..., N]
             Yvar = Fvar.at[..., i, j].add(sigma_sq)
             return Ymu, Yvar
         else:

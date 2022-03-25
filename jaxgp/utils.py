@@ -1,4 +1,7 @@
+import copy
 from typing import Dict, Union
+
+import jax
 
 from .abstractions import InducingPoints
 from .helpers import Array
@@ -30,3 +33,10 @@ def inducingpoint_wrapper(
         inducing_points_obj.params["inducing_points"] = inducing_points
         inducing_points = inducing_points_obj
     return inducing_points
+
+
+def pytree_shape_info(params: Dict) -> None:
+    # print params' shape info
+    params_container = copy.deepcopy(params)
+    params_container = jax.tree_map(lambda v: v.shape, params_container)
+    print(params_container)

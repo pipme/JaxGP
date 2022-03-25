@@ -8,7 +8,7 @@ import tensorflow_probability.substrates.jax as tfp
 from .config import Config
 
 
-def initialise(obj) -> Tuple[Dict, Dict, Dict]:
+def initialise(obj: object) -> Tuple[Dict, Callable, Callable]:
     params = obj.params
     constrain_trans, unconstrain_trans = build_transforms(obj.transforms)
     return params, constrain_trans, unconstrain_trans
@@ -32,7 +32,7 @@ def build_transforms(transforms: Dict) -> Tuple[Callable, Callable]:
     def constrain_trans(params: Dict) -> Dict:
         params = sort_dict(params)
 
-        def transform_param(param, transform):
+        def transform_param(param, transform):  # type: ignore
             if isinstance(transform, tfp.bijectors.Bijector):
                 return jnp.array(transform.forward(param))
             else:
@@ -43,7 +43,7 @@ def build_transforms(transforms: Dict) -> Tuple[Callable, Callable]:
     def unconstrain_trans(params: Dict) -> Dict:
         params = sort_dict(params)
 
-        def transform_param(param, transform):
+        def transform_param(param, transform):  # type: ignore
             if isinstance(transform, tfp.bijectors.Bijector):
                 return jnp.array(transform.inverse(param))
             else:

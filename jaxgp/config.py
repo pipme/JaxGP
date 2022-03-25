@@ -3,6 +3,8 @@ from dataclasses import dataclass
 import jax.numpy as jnp
 import tensorflow_probability.substrates.jax as tfp
 
+from .helpers import Array
+
 tfb = tfp.bijectors
 
 
@@ -21,11 +23,14 @@ class Config:
 
     int: type = jnp.int64
     float: type = jnp.float64
-    jitter: float = 1e-6
+    jitter: jnp.float64 = 1e-6
     positive_bijector: tfp.bijectors.Bijector = tfb.Softplus()
     identity_bijector: tfp.bijectors.Bijector = tfb.Identity()
-    positive_minimum: float = 0.0
+    triangular_bijector: tfp.bijectors.Bijector = (
+        tfb.FillTriangular()
+    )  # TODO: FillScaleTriL might be better?
+    positive_minimum: jnp.float64 = 0.0
 
 
-def default_jitter(K):
+def default_jitter(K: Array) -> Array:
     return K + Config.jitter * jnp.eye(K.shape[-1])

@@ -77,7 +77,7 @@ class SVGP:
             {
                 "q_sqrt": Config.positive_bijector
                 if q_diag
-                else Config.identity_bijector
+                else Config.triangular_bijector
             },
         )
 
