@@ -53,3 +53,4 @@ def test_svgp_predict():
     batch = jgp.Dataset(X, Y)
     neg_elbo(raw_params, batch)
     model.predict_y(params, Xtest, True)
+    model.predict_y(params, Xtest, False)

@@ -55,3 +55,5 @@ autodoc_type_aliases = {
     "Array": "jaxgp.helpers.Array",
     "Dataset": "jaxgp.datasets.Dataset",
 }
+# download notebooks as .ipynb and not as .ipynb.txt
+html_sourcelink_suffix = ""

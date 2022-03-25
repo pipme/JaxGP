@@ -31,7 +31,6 @@ def conditional(
     f_mean, f_cov = single_output_conditional(
         kernel_params,
         Xnew,
-        # inducing_variable,
         X,
         kernel,
         f=f,
@@ -46,7 +45,6 @@ def single_output_conditional(
     kernel_params: Dict,
     Xnew: Array,
     X: Array,
-    # inducing_variable: InducingVariable,
     kernel: Kernel,
     f: Array,
     full_cov: bool = False,

@@ -11,7 +11,7 @@ from .quadratures import gauss_hermite_quadrature
 
 @dataclass
 class Likelihood:
-    name: Optional[str] = "Likelihood"
+    name: str = ""
 
     def __repr__(self) -> str:
         return f"{self.name} likelihood function"
@@ -61,7 +61,7 @@ class Likelihood:
 
 @dataclass
 class Gaussian(Likelihood):
-    name: Optional[str] = "Gaussian"
+    name: str = "Gaussian"
 
     @property
     def params(self) -> Dict:
@@ -129,8 +129,123 @@ class Gaussian(Likelihood):
 
 
 @dataclass
+class HeteroskedasticGaussian(Likelihood):
+    """_summary_
+
+    Parameters
+    ----------
+    num_data : int
+        Number of data points.
+    user_provided: bool, default=False
+        Whether the noise variance vector is provided by user. If True, Y[:,-1]is the noise vector. If False, it's initialized with ones.
+    """
+
+    num_data: Optional[int] = None
+    user_provided: bool = False
+    name: str = "Heteroskedastic Gaussian"
+
+    def __post_init__(self) -> None:
+        if self.num_data is None and not self.user_provided:
+            raise ValueError(
+                "'num_data' is required if the noise is not provided (user_provided = False)"
+            )
+
+    @property
+    def params(self) -> Dict:
+        if self.user_provided:
+            return {}
+        else:
+            return {"noise": jnp.array([1.0] * self.num_data)}
+
+    @property
+    def link_function(self) -> Callable:
+        def identity_fn(x):  # type: ignore
+            return x
+
+        return identity_fn
+
+    @property
+    def transforms(self) -> Dict:
+        return {"noise": Config.positive_bijector}
+
+    def variational_expectation(
+        self,
+        params: Dict,
+        Fmu: Array,
+        Fvar: Array,
+        Y: Array,
+        sigma_sq: Optional[Array] = None,
+    ) -> Array:
+        sigma_sq = self.check_user_provided(params, sigma_sq)
+        return jnp.sum(
+            -0.5 * jnp.log(2 * jnp.pi)
+            - 0.5 * jnp.log(sigma_sq)
+            - 0.5 * ((Y - Fmu) ** 2 + Fvar) / sigma_sq,
+            axis=-1,
+        )
+
+    def predict_mean_and_var(
+        self,
+        params: Dict,
+        Fmu: Array,
+        Fvar: Array,
+        full_cov: bool = False,
+        sigma_sq: Optional[Array] = None,
+    ) -> Tuple[Array, Array]:
+        """Predict mean and var/cov for y.
+
+        Parameters
+        ----------
+        params : Dict
+            Parameter dictionary.
+        Fmu : Array
+            Mean values, with shape [N, latent_dim].
+        Fvar : Array
+            Variance or covariance matrix values, with shape [N, latent_dim]
+            or [latent_dim, N, N].
+
+        full_cov : bool, optional
+            Whether to compute covariance matrix, defalut=False.
+
+        Returns
+        -------
+        Ymu: Array
+            Mean values.
+        Yvar: Array
+            Variance or covariance matrix values.
+        """
+        sigma_sq = self.check_user_provided(params, sigma_sq)
+        if full_cov:
+            assert Fvar.ndim >= 3
+            # For details, see discussions in https://github.com/google/jax/issues/2680#issuecomment-804269672
+            i, j = jnp.diag_indices(min(Fvar.shape[-2:]))
+            Ymu = Fmu
+            sigma_sq = jnp.transpose(sigma_sq)
+            Yvar = Fvar.at[..., i, j].add(sigma_sq)
+            return Ymu, Yvar
+        else:
+            assert Fvar.ndim == 2
+            Ymu = Fmu
+            Yvar = Fvar + sigma_sq
+        return Ymu, Yvar
+
+    def check_user_provided(self, params, sigma_sq):  # type: ignore
+        if not self.user_provided:
+            sigma_sq = params["noise"]
+        else:
+            if sigma_sq is None:
+                raise ValueError("sigma_sq should be provided")
+            assert jnp.all(sigma_sq >= 0)
+
+        if sigma_sq.ndim == 1:
+            sigma_sq = jnp.expand_dims(sigma_sq, -1)  # [N, 1]
+        assert sigma_sq.ndim == 2
+        return sigma_sq  # [N, 1] or [N, latent_dim]
+
+
+@dataclass
 class Bernoulli(Likelihood):
-    name: Optional[str] = "Bernoulli"
+    name: str = "Bernoulli"
 
     @property
     def params(self) -> dict:
