@@ -137,7 +137,10 @@ class HeteroskedasticGaussian(Likelihood):
     num_data : int
         Number of data points.
     user_provided: bool, default=False
-        Whether the noise variance vector is provided by user. If True, Y[:,-1]is the noise vector. If False, it's initialized with ones.
+        Whether the noise variance vector is provided by user. If True, the
+        noise vector need to be provided as ``sigma_sq``. ``sigma_sq``'s shape
+        can be (N,), (N, 1) or (N, latent_dim). If False, ``num_data`` need to
+        be initialized and the noise params are initialized with ones.
     """
 
     num_data: Optional[int] = None
