@@ -49,7 +49,9 @@ class Zero(MeanFunction):
 class Constant(MeanFunction):
     output_dim: int = 1
     name: str = "Constant mean function"
-    _params: Dict = field(default_factory=lambda: {"constant": jnp.array(1.0)})
+    _params: Dict = field(
+        default_factory=lambda: {"constant": jnp.array([1.0])}
+    )
 
     def __call__(self, x: Array, params: Dict) -> Array:
         out_shape = (x.shape[0], self.output_dim)

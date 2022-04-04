@@ -65,7 +65,7 @@ class Gaussian(Likelihood):
 
     @property
     def params(self) -> Dict:
-        return {"noise": jnp.array(1.0)}
+        return {"noise": jnp.array([1.0])}
 
     @property
     def link_function(self) -> Callable:

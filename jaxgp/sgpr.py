@@ -80,7 +80,7 @@ class SGPR:
         num_data = self.num_data
         outdim = Y.shape[1]
         kdiag = gram(self.gprior.kernel, X, params["kernel"], full_cov=False)
-        sigma_sq = params["likelihood"]["noise"]
+        sigma_sq = params["likelihood"]["noise"].squeeze()
 
         # tr(K) / sigma^2
         trace_k = jnp.sum(kdiag) / sigma_sq
@@ -103,7 +103,7 @@ class SGPR:
 
         X, Y = self.train_data.X, self.train_data.Y
         err = Y - self.gprior.mean(params)(X)
-        sigma_sq = params["likelihood"]["noise"]
+        sigma_sq = params["likelihood"]["noise"].squeeze()
         sigma = jnp.sqrt(sigma_sq)
 
         Aerr = A @ err
