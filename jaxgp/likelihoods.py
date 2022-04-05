@@ -144,7 +144,7 @@ class HeteroskedasticGaussian(Likelihood):
     """
 
     num_data: Optional[int] = None
-    user_provided: bool = False
+    user_provided: bool = True
     name: str = "Heteroskedastic Gaussian"
 
     def __post_init__(self) -> None:
@@ -169,7 +169,10 @@ class HeteroskedasticGaussian(Likelihood):
 
     @property
     def transforms(self) -> Dict:
-        return {"noise": Config.positive_bijector}
+        if self.user_provided:
+            return {}
+        else:
+            return {"noise": Config.positive_bijector}
 
     def variational_expectation(
         self,

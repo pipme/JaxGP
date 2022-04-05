@@ -172,6 +172,57 @@ class SGPRPosterior:
         return mean, var
 
 
+class HeteroskedasticSGPRPosterior:
+    def __init__(
+        self, train_data: Dataset, gprior: GPrior, sigma_sq_user: Array
+    ) -> None:
+        self.train_data = train_data
+        self.gprior = gprior
+        self.num_latent_gps = train_data.Y.shape[-1]
+        self.sigma_sq_user = sigma_sq_user
+
+    def predict_f(self, X_new: Array, params: Dict, full_cov: bool = False):
+        if X_new.ndim == 1:
+            X_new = X_new[..., None]
+        X, Y = self.train_data.X, self.train_data.Y
+        iv = params["inducing_points"]
+        num_inducing = iv.shape[0]
+        err = Y - self.gprior.mean(params)(X)
+        Kuf = cross_covariance(self.gprior.kernel, iv, X, params["kernel"])
+        Kuu = cross_covariance(self.gprior.kernel, iv, iv, params["kernel"])
+        Kuu = default_jitter(Kuu)
+        Kus = cross_covariance(self.gprior.kernel, iv, X_new, params["kernel"])
+        sigma = jnp.sqrt(self.sigma_sq_user)
+        L = linalg.cholesky(Kuu, lower=True)
+        A = linalg.solve_triangular(L, Kuf, lower=True) / sigma[None, :]
+        B = A @ A.T + jnp.eye(num_inducing)
+        LB = linalg.cholesky(B, lower=True)
+        Aerr = (A / sigma[None, :]) @ err
+        c = linalg.solve_triangular(LB, Aerr, lower=True)
+        tmp1 = linalg.solve_triangular(L, Kus, lower=True)
+        tmp2 = linalg.solve_triangular(LB, tmp1, lower=True)
+        mean = tmp2.T @ c
+        if full_cov:
+            var = (
+                cross_covariance(
+                    self.gprior.kernel, X_new, X_new, params["kernel"]
+                )
+                + tmp2.T @ tmp2
+                - tmp1.T @ tmp1
+            )
+            var = jnp.tile(var[None, ...], [self.num_latent_gps, 1, 1])
+        else:
+            var = (
+                gram(
+                    self.gprior.kernel, X_new, params["kernel"], full_cov=False
+                )
+                + jnp.sum(tmp2**2, 0)
+                - jnp.sum(tmp1**2, 0)
+            )
+            var = jnp.tile(var[None, ...], [self.num_latent_gps, 1])
+        return mean, var
+
+
 def construct_posterior(
     prior: GPrior, likelihood: Likelihood, method: str = "exact"
 ) -> Posterior:
