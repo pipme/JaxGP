@@ -8,5 +8,5 @@
 :maxdepth: 1
 
 tutorials/sgpr_regression
-tutorials/svgp_regression
+tutorials/sgpr_heteroskedastic
 ```

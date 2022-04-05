@@ -39,13 +39,9 @@
     <script src="../_static/togglebutton.js"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
     <script src="../_static/sphinx-book-theme.9d8b4a8b9bb19db25eeaddc40d639ba2.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
     <link rel="canonical" href="https://jaxgp.readthedocs.io/en/latest/tutorials/svgp_regression.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Public API" href="../api/index.html" />
-    <link rel="prev" title="SGPR Regression" href="sgpr_regression.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
     
@@ -82,7 +78,7 @@
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item active">
-        <ul class="current nav bd-sidenav">
+        <ul class="nav bd-sidenav">
  <li class="toctree-l1 has-children">
   <a class="reference internal" href="../guide.html">
    User Guide
@@ -100,24 +96,24 @@
    </li>
   </ul>
  </li>
- <li class="toctree-l1 current active has-children">
+ <li class="toctree-l1 has-children">
   <a class="reference internal" href="../tutorials.html">
    Tutorials
   </a>
-  <input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
   <label for="toctree-checkbox-2">
    <i class="fas fa-chevron-down">
    </i>
   </label>
-  <ul class="current">
+  <ul>
    <li class="toctree-l2">
     <a class="reference internal" href="sgpr_regression.html">
      SGPR Regression
     </a>
    </li>
-   <li class="toctree-l2 current active">
-    <a class="current reference internal" href="#">
-     SVGP Regression
+   <li class="toctree-l2">
+    <a class="reference internal" href="sgpr_heteroskedastic.html">
+     SGPR Regression with heteroskedastic noise
     </a>
    </li>
   </ul>
@@ -482,257 +478,91 @@
 </div>
 <div class="cell_output docutils container">
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "4c9c1b3040d8495c8bba8646e3b21366"}
+{"model_id": "785b4059a3294fbb99def4cdb5f73130", "version_major": 2, "version_minor": 0}
 </script><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
+WARNING:root:The use of `check_types` is deprecated and does not have any effect.
 </pre></div>
 </div>
 </div>
@@ -754,7 +584,7 @@
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">plot_model</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="s2">&quot;kx&quot;</span><span class="p">,</span> <span class="n">mew</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="s2">&quot;kx&quot;</span><span class="p">,</span> <span class="n">mew</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;data points&quot;</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
         <span class="n">params</span><span class="p">[</span><span class="s2">&quot;inducing_points&quot;</span><span class="p">],</span>
         <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">num_inducing</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">]),</span>
@@ -762,18 +592,21 @@
         <span class="n">color</span><span class="o">=</span><span class="s2">&quot;tab:red&quot;</span><span class="p">,</span>
         <span class="n">mew</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
         <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;inducing_points&quot;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">mean</span><span class="p">,</span> <span class="n">var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict_y</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">Xtest</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Xtest</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="s2">&quot;tab:orange&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Xtest</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="s2">&quot;tab:orange&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;predicted mean&quot;</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span>
         <span class="n">Xtest</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
         <span class="n">mean</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">var</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]),</span>
         <span class="n">mean</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">var</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]),</span>
         <span class="n">color</span><span class="o">=</span><span class="s2">&quot;tab:blue&quot;</span><span class="p">,</span>
         <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;95</span><span class="si">% c</span><span class="s2">onfidence region&quot;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -793,31 +626,11 @@
 </div>
 
 
-<script type="application/vnd.jupyter.widget-state+json">
-{"state": {"53543c8cabc54d4c86a20ff5b0b519db": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "f7510fa71826493db4521a2b4987f083": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "ProgressStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "bar_color": null, "description_width": ""}}, "d44ba45c13df48f783d3d77ac3832e5a": {"model_name": "FloatProgressModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "FloatProgressModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "ProgressView", "bar_style": "success", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_53543c8cabc54d4c86a20ff5b0b519db", "max": 400.0, "min": 0.0, "orientation": "horizontal", "style": "IPY_MODEL_f7510fa71826493db4521a2b4987f083", "value": 400.0}}, "54a3375841324503bed8a7a8243e7f46": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "4f82adb9d44e4d1aad798b5edcbdf9ba": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "DescriptionStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "description_width": ""}}, "240923d5039c4025b997c34fee5ee779": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HTMLView", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_54a3375841324503bed8a7a8243e7f46", "placeholder": "\u200b", "style": "IPY_MODEL_4f82adb9d44e4d1aad798b5edcbdf9ba", "value": "100%"}}, "8185a2b90f1846fc9f79b7d3db62aff1": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "c0062d9dfe794835b5cd958b1e55e73b": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "DescriptionStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "description_width": ""}}, "182dca42baba4ff3bb1c90be091a8971": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HTMLView", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_8185a2b90f1846fc9f79b7d3db62aff1", "placeholder": "\u200b", "style": "IPY_MODEL_c0062d9dfe794835b5cd958b1e55e73b", "value": " 400/400 [00:53&lt;00:00,  5.92it/s]"}}, "29353204e3f643c09d9c434df87b89bd": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "4c9c1b3040d8495c8bba8646e3b21366": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HBoxModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HBoxView", "box_style": "", "children": ["IPY_MODEL_240923d5039c4025b997c34fee5ee779", "IPY_MODEL_d44ba45c13df48f783d3d77ac3832e5a", "IPY_MODEL_182dca42baba4ff3bb1c90be091a8971"], "layout": "IPY_MODEL_29353204e3f643c09d9c434df87b89bd"}}}, "version_major": 2, "version_minor": 0}
-</script>
-
-
-
               </div>
               
             
                 <!-- Previous / next buttons -->
-<div class='prev-next-area'> 
-    <a class='left-prev' id="prev-link" href="sgpr_regression.html" title="previous page">
-        <i class="fas fa-angle-left"></i>
-        <div class="prev-next-info">
-            <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">SGPR Regression</p>
-        </div>
-    </a>
-    <a class='right-next' id="next-link" href="../api/index.html" title="next page">
-    <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Public API</p>
-    </div>
-    <i class="fas fa-angle-right"></i>
-    </a>
+<div class='prev-next-area'>
 </div>
             
         </div>

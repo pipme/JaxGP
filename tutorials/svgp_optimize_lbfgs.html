@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SVGP Regression &#8212; jaxgp</title>
+    <title>&lt;no title&gt; &#8212; jaxgp</title>
     
   <link href="../_static/css/theme.css" rel="stylesheet">
   <link href="../_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
@@ -39,7 +39,7 @@
     <script src="../_static/togglebutton.js"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
     <script src="../_static/sphinx-book-theme.9d8b4a8b9bb19db25eeaddc40d639ba2.js"></script>
-    <link rel="canonical" href="https://jaxgp.readthedocs.io/en/latest/tutorials/test.html" />
+    <link rel="canonical" href="https://jaxgp.readthedocs.io/en/latest/tutorials/svgp_optimize_lbfgs.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -112,8 +112,8 @@
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="svgp_regression.html">
-     SVGP Regression
+    <a class="reference internal" href="sgpr_heteroskedastic.html">
+     SGPR Regression with heteroskedastic noise
     </a>
    </li>
   </ul>
@@ -279,7 +279,7 @@
         <!-- ipynb file if we had a myst markdown file -->
         
         <!-- Download raw file -->
-        <a class="dropdown-buttons" href="../_sources/tutorials/test.ipynb"><button type="button"
+        <a class="dropdown-buttons" href="../_sources/tutorials/svgp_optimize_lbfgs.ipynb"><button type="button"
                 class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
                 data-placement="left">.ipynb</button></a>
         <!-- Download PDF via print -->
@@ -299,10 +299,10 @@
                 data-toggle="tooltip" data-placement="left" title="Source repository"><i
                     class="fab fa-github"></i>repository</button></a>
         <a class="issues-button"
-            href="https://github.com/pipme/JaxGP/issues/new?title=Issue%20on%20page%20%2Ftutorials/test.html&body=Your%20issue%20content%20here."><button
+            href="https://github.com/pipme/JaxGP/issues/new?title=Issue%20on%20page%20%2Ftutorials/svgp_optimize_lbfgs.html&body=Your%20issue%20content%20here."><button
                 type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
                 title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
-        <a class="edit-button" href="https://github.com/pipme/JaxGP/edit/main/docs/tutorials/test.ipynb"><button
+        <a class="edit-button" href="https://github.com/pipme/JaxGP/edit/main/docs/tutorials/svgp_optimize_lbfgs.ipynb"><button
                 type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
                 title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
     </div>
@@ -322,7 +322,7 @@
         aria-label="Launch interactive content"><i class="fas fa-rocket"></i></button>
     <div class="dropdown-buttons">
         
-        <a class="binder-button" href="https://mybinder.org/v2/gh/pipme/JaxGP/main?urlpath=lab/tree/docs/tutorials/test.ipynb"><button type="button"
+        <a class="binder-button" href="https://mybinder.org/v2/gh/pipme/JaxGP/main?urlpath=lab/tree/docs/tutorials/svgp_optimize_lbfgs.ipynb"><button type="button"
                 class="btn btn-secondary topbarbtn" title="Launch Binder" data-toggle="tooltip"
                 data-placement="left"><img class="binder-button-logo"
                     src="../_static/images/logo_binder.svg"
@@ -330,7 +330,7 @@
         
         
         
-        <a class="colab-button" href="https://colab.research.google.com//github/pipme/JaxGP/blob/main/docs/tutorials/test.ipynb"><button type="button" class="btn btn-secondary topbarbtn"
+        <a class="colab-button" href="https://colab.research.google.com//github/pipme/JaxGP/blob/main/docs/tutorials/svgp_optimize_lbfgs.ipynb"><button type="button" class="btn btn-secondary topbarbtn"
                 title="Launch Colab" data-toggle="tooltip" data-placement="left"><img class="colab-button-logo"
                     src="../_static/images/logo_colab.png"
                     alt="Interact on Colab">Colab</button></a>
@@ -345,6 +345,14 @@
         <!-- Table of contents -->
         <div class="d-none d-md-block col-md-2 bd-toc show noprint">
             
+            <div class="tocsection onthispage pt-5 pb-3">
+                <i class="fas fa-list"></i> Contents
+            </div>
+            <nav id="bd-toc-nav" aria-label="Page">
+                <ul class="simple visible nav section-nav flex-column">
+</ul>
+
+            </nav>
         </div>
     </div>
 </div>
@@ -352,20 +360,26 @@
         <div class="col-12 col-md-9 pl-md-3 pr-md-0">
             <!-- Table of contents that is only displayed when printing the page -->
             <div id="jb-print-docs-body" class="onlyprint">
-                <h1>SVGP Regression</h1>
+                <h1><no title></h1>
                 <!-- Table of contents -->
                 <div id="print-main-content">
                     <div id="jb-print-toc">
                         
+                        <div>
+                            <h2> Contents </h2>
+                        </div>
+                        <nav aria-label="Page">
+                            <ul class="simple visible nav section-nav flex-column">
+</ul>
+
+                        </nav>
                     </div>
                 </div>
             </div>
             
               <div>
                 
-  <div class="tex2jax_ignore mathjax_ignore section" id="svgp-regression">
-<span id="svgp"></span><h1>SVGP Regression<a class="headerlink" href="#svgp-regression" title="Permalink to this headline">¶</a></h1>
-<div class="cell docutils container">
+  <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">load_ext</span> autoreload
 <span class="o">%</span><span class="k">autoreload</span> 2
@@ -398,44 +412,49 @@
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">t</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">tensorflow_probability.substrates.numpy</span> <span class="k">as</span> <span class="nn">tfp</span>
 
-<span class="n">input_dim</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="n">output_dim</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="n">num_data</span> <span class="o">=</span> <span class="mi">1000</span>
-<span class="n">num_test</span> <span class="o">=</span> <span class="mi">1000</span>
-<span class="n">num_inducing</span> <span class="o">=</span> <span class="mi">500</span>
-<span class="n">batch_size</span> <span class="o">=</span> <span class="mi">60</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;root&quot;</span><span class="p">)</span>
 
+<span class="k">class</span> <span class="nc">CheckTypesFilter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Filter</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;check_types&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">record</span><span class="o">.</span><span class="n">getMessage</span><span class="p">()</span>
 
-<span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
-    <span class="n">rv</span> <span class="o">=</span> <span class="n">t</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-    <span class="n">Y</span> <span class="o">=</span> <span class="n">rv</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
-    <span class="n">Y</span><span class="p">[</span><span class="n">Y</span><span class="o">&lt;-</span><span class="mi">10</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">10</span>
-    <span class="k">return</span> <span class="n">Y</span>
-    <span class="c1"># return np.sin(2 * X) + 0.3 * X + np.random.normal(0, 0.1, X.shape)</span>
-
-
-<span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="n">num_data</span><span class="p">)</span>
-<span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
-<span class="n">Y</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
-
-<span class="n">key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">CheckTypesFilter</span><span class="p">())</span>
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">input_dim</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">output_dim</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">num_data</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">num_test</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">num_inducing</span> <span class="o">=</span> <span class="mi">20</span>
+
+
+<span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">X</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.3</span> <span class="o">*</span> <span class="n">X</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+
+<span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="p">(</span><span class="n">num_data</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">))</span>
+<span class="n">Y</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+<span class="n">key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="n">Xtest</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span>
+    <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">num_test</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">),</span> <span class="n">minval</span><span class="o">=-</span><span class="mi">5</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
+    <span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[&lt;matplotlib.lines.Line2D at 0x2cd7ad7f0&gt;]
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:absl:No GPU/TPU found, falling back to CPU. (Set TF_CPP_MIN_LOG_LEVEL=0 and rerun for more info.)
 </pre></div>
 </div>
-<img alt="../_images/test_3_1.png" src="../_images/test_3_1.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -454,36 +473,105 @@
 <span class="n">params</span><span class="p">,</span> <span class="n">constrain_trans</span><span class="p">,</span> <span class="n">unconstrain_trans</span> <span class="o">=</span> <span class="n">jgp</span><span class="o">.</span><span class="n">initialise</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
 <span class="n">raw_params</span> <span class="o">=</span> <span class="n">unconstrain_trans</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
 <span class="n">neg_elbo</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">build_elbo</span><span class="p">(</span><span class="n">num_data</span><span class="o">=</span><span class="n">num_data</span><span class="p">,</span> <span class="n">sign</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">)</span>
-
-<span class="n">training_data</span> <span class="o">=</span> <span class="n">CustomDataset</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
-<span class="n">train_dataloader</span> <span class="o">=</span> <span class="n">NumpyLoader</span><span class="p">(</span>
-    <span class="n">training_data</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell tag_hide-output docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nd">@jax</span><span class="o">.</span><span class="n">jit</span>
-<span class="nd">@jax</span><span class="o">.</span><span class="n">value_and_grad</span>
-<span class="k">def</span> <span class="nf">loss</span><span class="p">(</span><span class="n">raw_params</span><span class="p">,</span> <span class="n">batch</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">neg_elbo</span><span class="p">(</span><span class="n">raw_params</span><span class="p">,</span> <span class="n">batch</span><span class="p">)</span>
-
-<span class="n">opt</span> <span class="o">=</span> <span class="n">optax</span><span class="o">.</span><span class="n">adam</span><span class="p">(</span><span class="n">learning_rate</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
-<span class="n">opt_state</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">raw_params</span><span class="p">)</span>
-<span class="n">num_epochs</span> <span class="o">=</span> <span class="mi">200</span>
-<span class="n">loss_history</span> <span class="o">=</span> <span class="p">[]</span>
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_epochs</span><span class="p">)):</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">jaxgp.utils</span> <span class="kn">import</span> <span class="n">pytree_shape_info</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">loss</span><span class="p">(</span><span class="n">raw_params</span><span class="p">):</span>
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="n">num_data</span>
+    <span class="k">if</span> <span class="n">num_data</span> <span class="o">%</span> <span class="n">batch_size</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;num_data need to be divisible by batch_size.&quot;</span><span class="p">)</span>
+    <span class="n">num_iters</span> <span class="o">=</span> <span class="n">num_data</span> <span class="o">//</span> <span class="n">batch_size</span>
+    <span class="n">neg_elbo_value</span> <span class="o">=</span> <span class="mf">0.</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_iters</span><span class="p">):</span>
+        <span class="n">batch</span> <span class="o">=</span> <span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="n">batch_size</span> <span class="p">:</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">batch_size</span><span class="p">],</span> <span class="n">Y</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="n">batch_size</span> <span class="p">:</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">batch_size</span><span class="p">])</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">batch</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Y</span><span class="o">=</span><span class="n">batch</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">neg_elbo_value</span> <span class="o">+=</span> <span class="n">neg_elbo</span><span class="p">(</span><span class="n">raw_params</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">neg_elbo_value</span> <span class="o">/</span> <span class="n">i</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Initial negative elbo = &quot;</span><span class="p">,</span> <span class="n">loss</span><span class="p">(</span><span class="n">raw_params</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Initial negative elbo =  3763.078332575452
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pytree_shape_info</span><span class="p">(</span><span class="n">raw_params</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;inducing_points&#39;: (20, 1), &#39;kernel&#39;: {&#39;lengthscale&#39;: (1,), &#39;outputscale&#39;: (1,)}, &#39;likelihood&#39;: {&#39;noise&#39;: ()}, &#39;mean_function&#39;: {&#39;m0&#39;: (1,), &#39;scale&#39;: (1,), &#39;xm&#39;: (1,)}, &#39;q_mu&#39;: (20, 1), &#39;q_sqrt&#39;: (1, 210)}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">solver</span> <span class="o">=</span> <span class="n">jaxopt</span><span class="o">.</span><span class="n">LBFGS</span><span class="p">(</span><span class="n">fun</span><span class="o">=</span><span class="n">loss</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">soln</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">raw_params</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">solver</span> <span class="o">=</span> <span class="n">jaxopt</span><span class="o">.</span><span class="n">ScipyMinimize</span><span class="p">(</span><span class="n">fun</span><span class="o">=</span><span class="n">loss</span><span class="p">,</span> <span class="n">jit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;disp&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
+<span class="n">soln</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">raw_params</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Warning: Desired error not necessarily achieved due to precision loss.
+         Current function value: -860.044056
+         Iterations: 45797
+         Function evaluations: 47904
+         Gradient evaluations: 47893
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nd">@jax</span><span class="o">.</span><span class="n">jit</span>
+<span class="nd">@jax</span><span class="o">.</span><span class="n">value_and_grad</span>
+<span class="k">def</span> <span class="nf">loss_sgd</span><span class="p">(</span><span class="n">raw_params</span><span class="p">,</span> <span class="n">batch</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">neg_elbo</span><span class="p">(</span><span class="n">raw_params</span><span class="p">,</span> <span class="n">batch</span><span class="p">)</span>
+
+<span class="n">batch_size</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">training_data</span> <span class="o">=</span> <span class="n">CustomDataset</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+<span class="n">train_dataloader</span> <span class="o">=</span> <span class="n">NumpyLoader</span><span class="p">(</span>
+    <span class="n">training_data</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="n">opt</span> <span class="o">=</span> <span class="n">optax</span><span class="o">.</span><span class="n">adam</span><span class="p">(</span><span class="n">learning_rate</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
+<span class="n">opt_state</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">raw_params</span><span class="p">)</span>
+
+<span class="n">num_epochs</span> <span class="o">=</span> <span class="mi">400</span>
+<span class="n">loss_history</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_epochs</span><span class="p">)):</span>
     <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">train_dataloader</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">batch</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Y</span><span class="o">=</span><span class="n">batch</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">loss_val</span><span class="p">,</span> <span class="n">grads</span> <span class="o">=</span> <span class="n">loss</span><span class="p">(</span><span class="n">raw_params</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="n">loss_val</span><span class="p">,</span> <span class="n">grads</span> <span class="o">=</span> <span class="n">loss_sgd</span><span class="p">(</span><span class="n">raw_params</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
         <span class="n">updates</span><span class="p">,</span> <span class="n">opt_state</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">grads</span><span class="p">,</span> <span class="n">opt_state</span><span class="p">)</span>
         <span class="n">raw_params</span> <span class="o">=</span> <span class="n">optax</span><span class="o">.</span><span class="n">apply_updates</span><span class="p">(</span><span class="n">raw_params</span><span class="p">,</span> <span class="n">updates</span><span class="p">)</span>
     <span class="n">loss_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss_val</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
@@ -492,94 +580,8 @@
 </div>
 <div class="cell_output docutils container">
 <script type="application/vnd.jupyter.widget-view+json">
-{"model_id": "7f4eb2b1fbeb4fd7a4239ce6551bd226", "version_major": 2, "version_minor": 0}
-</script><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-WARNING:root:The use of `check_types` is deprecated and does not have any effect.
-</pre></div>
-</div>
-</div>
+{"model_id": "22aa727e29bd46fb93d5210d53bd3bd4", "version_major": 2, "version_minor": 0}
+</script></div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -591,7 +593,111 @@ WARNING:root:The use of `check_types` is deprecated and does not have any effect
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/test_7_0.png" src="../_images/test_7_0.png" />
+<img alt="../_images/svgp_optimize_lbfgs_11_0.png" src="../_images/svgp_optimize_lbfgs_11_0.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">loss</span><span class="p">(</span><span class="n">raw_params</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>DeviceArray(-836.42316559, dtype=float64)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">raw_params</span><span class="p">[</span><span class="s2">&quot;q_sqrt&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>DeviceArray([[ 5.82068186e-01,  4.93282703e-02, -5.36462701e-02,
+               1.19021663e-01, -1.31802779e-02, -3.86867078e-02,
+              -2.38417262e-03, -5.66921426e-01,  1.70304368e-02,
+               4.57260575e-02,  1.92021094e-01, -5.28586124e-02,
+              -8.11382632e-02,  2.16701447e-02, -3.49428298e-01,
+               1.83644469e-01,  2.01244929e-01, -3.57400855e-02,
+               1.26161443e-02, -1.19384530e-01,  9.68854423e-03,
+               9.81384855e-02, -6.75875741e-03,  1.06167677e-01,
+              -7.76753140e-03,  5.02997250e-02,  8.99387890e-02,
+              -5.49162448e-01, -5.61473407e-02, -8.13394265e-02,
+              -2.92942895e-01,  8.27609070e-02,  4.16004950e-02,
+              -6.80426471e-02,  2.03884828e-01, -2.46902017e-01,
+              -3.05832406e-01,  2.49312281e-02,  1.68192551e-01,
+               1.09255646e-01,  1.73489805e-02,  7.21265663e-01,
+               1.47721067e-01,  1.96179187e-01,  2.38616949e-02,
+              -3.45377756e-01,  1.40229319e-01,  3.99688567e-02,
+              -4.77616278e-02,  2.18790719e-01, -1.60421541e-02,
+              -1.86777237e-01, -6.10276206e-02,  9.35259159e-02,
+               4.84338119e-02, -1.38100320e-02, -7.25092753e-02,
+              -1.80606440e-02, -1.26090238e-02,  3.57157771e-02,
+               5.54326820e-04,  4.40290510e-04,  7.94101321e-03,
+               5.99743515e-01, -3.89481135e-02,  7.11678761e-02,
+              -2.21006114e-01,  1.14821696e-01,  1.77640711e-01,
+               7.62659225e-02,  7.48800988e-03, -1.58290442e-01,
+              -3.79927941e-01,  2.51170755e-02, -6.24249135e-02,
+              -1.75173557e-01, -2.80372762e-01, -8.08006270e-02,
+              -7.38643347e-02, -6.37425164e-02, -3.75159569e-03,
+               7.97419506e-03, -1.01159292e-03,  5.16718894e-02,
+               1.75649962e-02,  1.42001874e-01, -1.61747284e-01,
+               1.00566861e-03,  7.61215787e-02, -9.09616511e-02,
+              -4.37251913e-03,  7.89975246e-02, -5.83984823e-04,
+              -4.83000862e-02, -2.02729086e-02, -3.49714258e-02,
+              -1.94552729e-02,  4.94864676e-02,  4.65035467e-04,
+              -2.00869801e-02,  2.60469634e-02,  1.04473250e-02,
+               1.27837206e-02, -4.73121746e-01,  4.13654744e-01,
+               1.71330137e-01, -4.72078705e-01, -7.16341101e-03,
+               1.99333700e-01, -1.00326090e-01, -2.11586948e-02,
+               1.20284229e-01,  5.77639910e-02, -6.65019860e-02,
+              -1.71112802e-02, -5.14212681e-02, -2.42857327e-02,
+               1.16544587e-01,  1.27479756e-02, -7.70808164e-03,
+              -1.89046991e-02, -4.70591482e-01, -1.23044246e-03,
+               1.94445843e-02,  3.91557432e-03,  1.75872426e-01,
+               7.38449574e-01,  6.06585476e-02,  2.55254140e-01,
+              -1.16499902e-01,  1.52797918e-02,  1.24760186e-01,
+              -6.50793538e-03, -1.23310806e-01, -9.43369806e-02,
+              -9.72529487e-02, -9.35239355e-02, -3.52688404e-04,
+              -3.37108262e-02, -7.65184726e-02, -4.68267763e-03,
+               1.55137771e-02, -2.97088677e-03,  4.72488494e-02,
+              -6.70524687e-02, -6.77125472e-03,  1.03210601e-02,
+               3.00810254e-01, -1.27151541e-01, -1.00933214e-02,
+               2.06804317e-02,  2.01881384e-02,  1.14244942e-02,
+              -2.08469118e-02, -5.39989591e-01, -1.62196505e-01,
+              -8.61269901e-02,  1.12094356e-02,  2.07738411e-01,
+               1.04689596e-03, -1.76382270e-02,  3.09289157e-02,
+               1.74125547e-03,  2.64448065e-02, -9.41319495e-02,
+              -1.73086023e-02, -4.38420116e-03,  4.03666849e-02,
+               8.98747707e-01,  5.47456654e-02, -1.59229001e-02,
+              -1.63457994e-02,  1.03620741e-01,  2.39678082e-03,
+              -7.16038641e-03,  4.54079943e-02,  4.60718796e-02,
+               7.98489240e-03,  6.00101566e-02,  5.64788436e-02,
+              -2.74228957e-02,  2.42303468e-02,  5.39082976e-03,
+              -3.67611277e-03, -6.98566504e-02, -1.89746098e-02,
+              -4.22764485e-02,  5.69111021e-02,  3.55350236e-02,
+               5.52903015e-02,  1.71917007e-02, -1.09842871e-01,
+              -7.18571941e-02,  8.91372821e-02, -6.67577506e-03,
+               9.38614209e-02,  7.89608552e-02, -5.22735867e-02,
+               5.07085563e-02,  4.03088804e-02, -1.86774801e-02,
+               1.72917721e-01, -7.41543118e-03,  1.59114582e-01,
+               6.86428212e-02, -7.82261051e-02,  1.41485635e-02,
+              -6.05278436e-02, -1.54914456e-02,  4.74726879e-02]],            dtype=float64)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">params</span> <span class="o">=</span> <span class="n">constrain_trans</span><span class="p">(</span><span class="n">raw_params</span><span class="p">)</span>
+<span class="n">plot_model</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/svgp_optimize_lbfgs_14_0.png" src="../_images/svgp_optimize_lbfgs_14_0.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -606,7 +712,7 @@ WARNING:root:The use of `check_types` is deprecated and does not have any effect
         <span class="n">color</span><span class="o">=</span><span class="s2">&quot;tab:red&quot;</span><span class="p">,</span>
         <span class="n">mew</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
         <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
-        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;inducing_points&quot;</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;inducing_points&quot;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">mean</span><span class="p">,</span> <span class="n">var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict_y</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">Xtest</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Xtest</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="s2">&quot;tab:orange&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;predicted mean&quot;</span><span class="p">)</span>
@@ -616,11 +722,13 @@ WARNING:root:The use of `check_types` is deprecated and does not have any effect
         <span class="n">mean</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">var</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]),</span>
         <span class="n">color</span><span class="o">=</span><span class="s2">&quot;tab:blue&quot;</span><span class="p">,</span>
         <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
-        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;95</span><span class="si">% c</span><span class="s2">onfidence region&quot;</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;95</span><span class="si">% c</span><span class="s2">onfidence region&quot;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -628,17 +736,42 @@ WARNING:root:The use of `check_types` is deprecated and does not have any effect
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Xtest</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span>
-    <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">num_test</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">),</span> <span class="n">minval</span><span class="o">=-</span><span class="mi">30</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">30</span><span class="p">),</span>
-    <span class="mi">0</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">params</span> <span class="o">=</span> <span class="n">constrain_trans</span><span class="p">(</span><span class="n">raw_params</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">params</span> <span class="o">=</span> <span class="n">constrain_trans</span><span class="p">(</span><span class="n">soln</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
 <span class="n">plot_model</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/test_9_0.png" src="../_images/test_9_0.png" />
+<img alt="../_images/svgp_optimize_lbfgs_17_0.png" src="../_images/svgp_optimize_lbfgs_17_0.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">loss</span><span class="p">(</span><span class="n">raw_params</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>DeviceArray(3703.62440671, dtype=float64)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">opt</span> <span class="o">=</span> <span class="n">optax</span><span class="o">.</span><span class="n">adam</span><span class="p">(</span><span class="n">learning_rate</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
+<span class="n">opt_state</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">raw_params</span><span class="p">)</span>
+
+<span class="n">num_epochs</span> <span class="o">=</span> <span class="mi">400</span>
+<span class="n">loss_history</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_epochs</span><span class="p">)):</span>
+    <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">train_dataloader</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">batch</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Y</span><span class="o">=</span><span class="n">batch</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">loss_val</span><span class="p">,</span> <span class="n">grads</span> <span class="o">=</span> <span class="n">loss</span><span class="p">(</span><span class="n">raw_params</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="n">updates</span><span class="p">,</span> <span class="n">opt_state</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">grads</span><span class="p">,</span> <span class="n">opt_state</span><span class="p">)</span>
+        <span class="n">raw_params</span> <span class="o">=</span> <span class="n">optax</span><span class="o">.</span><span class="n">apply_updates</span><span class="p">(</span><span class="n">raw_params</span><span class="p">,</span> <span class="n">updates</span><span class="p">)</span>
+    <span class="n">loss_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss_val</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+</pre></div>
 </div>
 </div>
 </div>
