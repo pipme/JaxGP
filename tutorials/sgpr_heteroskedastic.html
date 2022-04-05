@@ -474,7 +474,11 @@
 <span class="n">inds</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">X</span><span class="p">[:,</span><span class="mi">0</span><span class="p">])</span>
 <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">inds</span><span class="p">]</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">inds</span><span class="p">]</span>
-<span class="n">Z</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:absl:No GPU/TPU found, falling back to CPU. (Set TF_CPP_MIN_LOG_LEVEL=0 and rerun for more info.)
 </pre></div>
 </div>
 </div>
@@ -483,7 +487,8 @@
 <h2>Sanity check with SGPR with homoscedastic noise<a class="headerlink" href="#sanity-check-with-sgpr-with-homoscedastic-noise" title="Permalink to this headline">¶</a></h2>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">train_data</span> <span class="o">=</span> <span class="n">jgp</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Z</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">train_data</span> <span class="o">=</span> <span class="n">jgp</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
 <span class="n">kernel</span> <span class="o">=</span> <span class="n">jgp</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">RBF</span><span class="p">(</span><span class="n">active_dims</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">HeteroskedasticSGPR</span><span class="p">(</span>
     <span class="n">train_data</span><span class="o">=</span><span class="n">train_data</span><span class="p">,</span>
@@ -507,6 +512,11 @@
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;inducing_points&#39;: (50, 1), &#39;kernel&#39;: {&#39;lengthscale&#39;: (1,), &#39;outputscale&#39;: (1,)}, &#39;likelihood&#39;: {}, &#39;mean_function&#39;: {}}
+</pre></div>
+</div>
+</div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -520,6 +530,17 @@
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;After optimization negative elbo = &quot;</span><span class="p">,</span> <span class="n">neg_elbo</span><span class="p">(</span><span class="n">soln</span><span class="o">.</span><span class="n">params</span><span class="p">))</span>
 
 <span class="n">posterior</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">posterior</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Initial negative elbo =  42.95399702879332
+Optimization terminated successfully.
+         Current function value: 23.966750
+         Iterations: 113
+         Function evaluations: 115
+         Gradient evaluations: 115
+After optimization negative elbo =  23.96674978103455
 </pre></div>
 </div>
 </div>
@@ -543,6 +564,12 @@
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.collections.PolyCollection at 0x28e778070&gt;
+</pre></div>
+</div>
+<img alt="../_images/sgpr_heteroskedastic_8_1.png" src="../_images/sgpr_heteroskedastic_8_1.png" />
+</div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -552,7 +579,7 @@
 <span class="p">)</span>
 <span class="k">assert</span> <span class="n">jnp</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">qu_mean</span><span class="p">,</span> <span class="n">f_at_Z_mean</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">jnp</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span>
-    <span class="n">qu_cov</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">),</span> <span class="n">f_at_Z_cov</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-5</span>
+    <span class="n">qu_cov</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">Z</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Z</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">f_at_Z_cov</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-5</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -563,13 +590,14 @@
 <h2>Heteroskedastic noise<a class="headerlink" href="#heteroskedastic-noise" title="Permalink to this headline">¶</a></h2>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">train_data</span> <span class="o">=</span> <span class="n">jgp</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Z</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">copy</span><span class="p">()[::</span><span class="mi">3</span><span class="p">]</span>
+<span class="n">train_data</span> <span class="o">=</span> <span class="n">jgp</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
 <span class="n">kernel</span> <span class="o">=</span> <span class="n">jgp</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">RBF</span><span class="p">(</span><span class="n">active_dims</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">HeteroskedasticSGPR</span><span class="p">(</span>
     <span class="n">train_data</span><span class="o">=</span><span class="n">train_data</span><span class="p">,</span>
     <span class="n">gprior</span><span class="o">=</span><span class="n">jgp</span><span class="o">.</span><span class="n">GPrior</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">),</span>
     <span class="n">likelihood</span><span class="o">=</span><span class="n">jgp</span><span class="o">.</span><span class="n">likelihoods</span><span class="o">.</span><span class="n">HeteroskedasticGaussian</span><span class="p">(</span><span class="n">user_provided</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-    <span class="c1"># sigma_sq=jnp.linspace(0.1, 10., X.shape[0]),</span>
+    <span class="c1"># sigma_sq=jnp.linspace(0.01, 10., X.shape[0]),</span>
     <span class="n">sigma_sq</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="mf">0.01</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">),</span> <span class="mf">1.</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)]),</span>
     <span class="n">inducing_points</span><span class="o">=</span><span class="n">Z</span><span class="p">,</span>
 <span class="p">)</span>
@@ -589,13 +617,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Initial negative elbo =  91.49178283806722
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Initial negative elbo =  91.49679933742982
 Optimization terminated successfully.
-         Current function value: 75.785264
-         Iterations: 100
-         Function evaluations: 101
-         Gradient evaluations: 101
-After optimization negative elbo =  75.78526441489558
+         Current function value: 75.788562
+         Iterations: 124
+         Function evaluations: 136
+         Gradient evaluations: 136
+After optimization negative elbo =  75.78856245441767
 </pre></div>
 </div>
 </div>
@@ -620,7 +648,7 @@ After optimization negative elbo =  75.78526441489558
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.collections.PolyCollection at 0x1616e1310&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.collections.PolyCollection at 0x28ec3dfd0&gt;
 </pre></div>
 </div>
 <img alt="../_images/sgpr_heteroskedastic_12_1.png" src="../_images/sgpr_heteroskedastic_12_1.png" />
