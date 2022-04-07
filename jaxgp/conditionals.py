@@ -6,14 +6,14 @@ import jax.scipy.linalg as linalg
 
 from .config import default_jitter
 from .helpers import Array
-from .kernels import Kernel, cross_covariance, gram
+from .kernels import Stationary, cross_covariance, gram
 
 
 def conditional(
     kernel_params: Dict,
     Xnew: Array,
     X: Array,
-    kernel: Kernel,
+    kernel: Stationary,
     f: Array,
     full_cov: bool = False,
     full_output_cov: bool = False,
@@ -45,7 +45,7 @@ def single_output_conditional(
     kernel_params: Dict,
     Xnew: Array,
     X: Array,
-    kernel: Kernel,
+    kernel: Stationary,
     f: Array,
     full_cov: bool = False,
     full_output_cov: bool = False,

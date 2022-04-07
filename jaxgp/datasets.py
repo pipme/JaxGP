@@ -2,7 +2,7 @@ import numpy as np
 from torch.utils import data
 from torch.utils.data import Dataset as DatasetTorch
 
-from .helpers import Array, dataclass, field
+from .helpers import Array, dataclass
 
 
 def numpy_collate(batch):
@@ -22,9 +22,9 @@ class Dataset:
 
     def __post_init__(self):
         if self.Y.ndim == 1:
-            self.Y = self.Y[..., None]
+            object.__setattr__(self, "Y", self.Y[..., None])
         if self.X.ndim == 1:
-            self.X = self.X[..., None]
+            object.__setattr__(self, "X", self.X[..., None])
         assert self.X.ndim == 2
         assert self.Y.ndim == 2
 

@@ -7,12 +7,11 @@ from jax.scipy import linalg
 
 from .datasets import Dataset
 from .helpers import Array, dataclass
-from .kernels import Kernel, cross_covariance, gram
+from .kernels import Stationary, cross_covariance, gram
 from .likelihoods import Gaussian, Likelihood, NonConjugateLikelihoods
 from .means import MeanFunction, Zero
 
 
-@dataclass
 class GP:
     @abstractmethod
     def mean(self, params: Dict) -> Callable[[Array], Array]:
@@ -35,15 +34,9 @@ class GP:
 
 @dataclass
 class GPrior(GP):
-    kernel: Kernel
+    kernel: Stationary
     mean_function: MeanFunction = Zero()
     name: Optional[str] = "GPrior"
-
-    def __post_init__(self) -> None:
-        self._params = {
-            "kernel": self.kernel.params,
-            "mean_function": self.mean_function.params,
-        }
 
     def mean(self, params: dict) -> Callable[[Array], Array]:
         def mean_fn(X: Array) -> Array:
@@ -63,7 +56,10 @@ class GPrior(GP):
 
     @property
     def params(self) -> dict:
-        return self._params
+        return {
+            "kernel": self.kernel.params,
+            "mean_function": self.mean_function.params,
+        }
 
     def random_variable(self, X: Array, params: dict) -> tfd.Distribution:
         N = X.shape[0]

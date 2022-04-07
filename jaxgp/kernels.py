@@ -1,5 +1,5 @@
-from abc import abstractmethod
-from typing import Dict, Optional, Tuple
+from abc import ABCMeta, abstractmethod
+from typing import TYPE_CHECKING, Any, Dict, Tuple
 
 import jax.numpy as jnp
 from jax import vmap
@@ -43,20 +43,33 @@ class L2Distance(Distance):
         return jnp.sum(jnp.square(X1 - X2))
 
 
-@dataclass
-class Kernel:
-    active_dims: Tuple[int] = (0,)
-    stationary: Optional[bool] = False
-    spectral: Optional[bool] = False
-    name: Optional[str] = "Kernel"
-    _params: Dict = field(default_factory=dict)
+class Kernel(metaclass=ABCMeta):
+    if TYPE_CHECKING:
 
-    def __post_init__(self) -> None:
-        self.ndims = len(self.active_dims)
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            pass
 
     @abstractmethod
-    def __call__(self, x: Array, y: Array, params: dict) -> Array:
+    def __call__(self, x: Array, y: Array, params: Dict) -> Array:
         raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def params(self) -> Dict:
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def transforms(self) -> Dict:
+        raise NotImplementedError
+
+
+@dataclass
+class Stationary(Kernel):
+    active_dims: Tuple[int] = (0,)
+    stationary: bool = False
+    spectral: bool = False
+    name: str = "Stationary Kernel"
 
     def slice_input(self, x: Array) -> Array:
         return x[..., self.active_dims]
@@ -66,36 +79,31 @@ class Kernel:
         return True if self.ndims > 1 else False
 
     @property
-    def params(self) -> dict:
-        return self._params
-
-    @property
-    @abstractmethod
-    def transforms(self) -> Dict:
-        raise NotImplementedError
+    def ndims(self) -> int:
+        return len(self.active_dims)
 
 
 @dataclass
-class RBF(Kernel):
-    name: Optional[str] = "Radial basis function kernel"
+class RBF(Stationary):
+    name: str = "Radial basis function kernel"
     distance: Distance = L2Distance()
 
-    def __post_init__(self) -> None:
-        self.ndims = len(self.active_dims)
-        self._params = {
-            "lengthscale": jnp.array([1.0] * self.ndims),
-            "outputscale": jnp.array([1.0]),
-        }
-
-    def __call__(self, x: Array, y: Array, params: dict) -> Array:
-        for key, _ in self._params.items():
-            assert self._params[key].shape == params[key].shape
+    def __call__(self, x: Array, y: Array, params: Dict) -> Array:
+        for key, _ in self.params.items():
+            assert self.params[key].shape == params[key].shape
         x = self.slice_input(x) / params["lengthscale"]
         y = self.slice_input(y) / params["lengthscale"]
         K = params["outputscale"] * jnp.exp(
             -0.5 * self.distance.squared_distance(x, y)
         )
         return K.squeeze()
+
+    @property
+    def params(self) -> Dict:
+        return {
+            "lengthscale": jnp.array([1.0] * self.ndims),
+            "outputscale": jnp.array([1.0]),
+        }
 
     @property
     def transforms(self) -> Dict:
@@ -106,7 +114,7 @@ class RBF(Kernel):
 
 
 def gram(
-    kernel: Kernel, inputs: Array, params: dict, full_cov: bool = True
+    kernel: Stationary, inputs: Array, params: Dict, full_cov: bool = True
 ) -> Array:
     """Compute gram matrix of the inputs."""
     if full_cov:
@@ -118,7 +126,7 @@ def gram(
 
 
 def cross_covariance(
-    kernel: Kernel, X: Array, Y: Array, params: dict
+    kernel: Stationary, X: Array, Y: Array, params: Dict
 ) -> Array:
     """Compute covariance matrix between X and Y."""
     return vmap(lambda x1: vmap(lambda y1: kernel(x1, y1, params))(Y))(X)

@@ -10,7 +10,7 @@ from .config import Config, default_jitter
 from .datasets import Dataset
 from .divergences import gauss_kl
 from .gps import GPrior
-from .helpers import Array, dataclass
+from .helpers import Array
 from .kernels import cross_covariance
 from .likelihoods import Gaussian, Likelihood
 from .parameters import build_transforms

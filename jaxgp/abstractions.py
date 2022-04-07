@@ -4,7 +4,7 @@ from .config import Config
 from .helpers import dataclass
 
 
-@dataclass
+@dataclass(frozen=False)
 class InducingPoints:
     num_inducing: int
     D: int
@@ -16,7 +16,9 @@ class InducingPoints:
 
     @property
     def params(self) -> dict:
-        return self._params
+        return {
+            "inducing_points": jnp.zeros((self.num_inducing, self.D)),
+        }
 
     @params.setter
     def params(self, value):

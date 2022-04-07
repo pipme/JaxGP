@@ -1,4 +1,4 @@
-import abc
+from abc import ABCMeta, abstractmethod
 from typing import Dict, Optional
 
 import jax.numpy as jnp
@@ -8,12 +8,11 @@ from .helpers import Array, dataclass, field
 
 
 @dataclass
-class MeanFunction:
+class MeanFunction(metaclass=ABCMeta):
     output_dim: Optional[int] = 1
     name: str = "Mean function"
-    _params: Dict = field(default_factory=dict)
 
-    @abc.abstractmethod
+    @abstractmethod
     def __call__(self, x: Array, params: Dict) -> Array:
         raise NotImplementedError
 
@@ -21,11 +20,12 @@ class MeanFunction:
         return f"{self.name}\n\t Output dimension: {self.output_dim}"
 
     @property
+    @abstractmethod
     def params(self) -> Dict:
-        return self._params
+        raise NotImplementedError
 
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def transforms(self) -> Dict:
         raise NotImplementedError
 
@@ -34,11 +34,14 @@ class MeanFunction:
 class Zero(MeanFunction):
     output_dim: Optional[int] = 1
     name: str = "Zero mean function"
-    _params: Dict = field(default_factory=dict)
 
     def __call__(self, x: Array, params: Optional[Dict] = None) -> Array:
         out_shape = (x.shape[0], self.output_dim)
         return jnp.zeros(shape=out_shape)
+
+    @property
+    def params(self) -> Dict:
+        return {}
 
     @property
     def transforms(self) -> Dict:
@@ -58,6 +61,10 @@ class Constant(MeanFunction):
         return jnp.ones(shape=out_shape) * params["constant"]
 
     @property
+    def params(self) -> Dict:
+        return {"constant": jnp.array([1.0])}
+
+    @property
     def transforms(self) -> Dict:
         return {"constant": Config.identity_bijector}
 
@@ -74,17 +81,18 @@ class Quadratic(MeanFunction):
     input_dim: int = 1
     name: str = "Quadratic mean function"
 
-    def __post_init__(self) -> None:
-        self._params = {
-            "m0": jnp.array([0.0]),
-            "scale": jnp.array([1.0] * self.input_dim),
-            "xm": jnp.array([0.0] * self.input_dim),
-        }
-
     def __call__(self, x: Array, params: Dict) -> Array:
         return params["m0"] - 0.5 * jnp.sum(
             ((x - params["xm"]) / params["scale"]) ** 2, -1, keepdims=True
         )
+
+    @property
+    def params(self) -> Dict:
+        return {
+            "m0": jnp.array([0.0]),
+            "scale": jnp.array([1.0] * self.input_dim),
+            "xm": jnp.array([0.0] * self.input_dim),
+        }
 
     @property
     def transforms(self) -> Dict:

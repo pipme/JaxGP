@@ -22,24 +22,53 @@ Array = Union[np.ndarray, jnp.ndarray]
 # See https://github.com/microsoft/pyright/blob/main/specs/dataclass_transforms.md
 # for more information about the __dataclass_transform__ magic.
 _T = TypeVar("_T")
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    # Treat our JAX field and dataclass functions as their counterparts from the
+    # standard dataclasses library during static analysis
+    #
+    # Tools like via mypy, jedi, etc generally rely on a lot of special, hardcoded
+    # behavior for the standard dataclasses library; this lets us take advantage of all
+    # of it.
+    #
+    # Note that mypy will not follow aliases, so `from dataclasses import dataclass` is
+    # preferred over `dataclass = dataclasses.dataclass`.
+    #
+    # For the future, dataclass transforms may also be worth looking into:
+    # https://github.com/microsoft/pyright/blob/master/specs/dataclass_transforms.md
+    from dataclasses import dataclass, field
+else:
 
-def __dataclass_transform__(
-    *,
-    eq_default: bool = True,
-    order_default: bool = False,
-    kw_only_default: bool = False,
-    field_descriptors: Tuple[Union[type, Callable[..., Any]], ...] = (()),
-) -> Callable[[_T], _T]:
-    # If used within a stub file, the following implementation can be
-    # replaced with "...".
-    return lambda a: a
+    def field(pytree_node: bool = True, **kwargs: Any) -> Any:
+        return dataclasses.field(
+            metadata={"pytree_node": pytree_node}, **kwargs
+        )
 
+    def __dataclass_transform__(
+        *,
+        eq_default: bool = True,
+        order_default: bool = False,
+        kw_only_default: bool = False,
+        field_descriptors: Tuple[Union[type, Callable[..., Any]], ...] = (()),
+    ) -> Callable[[_T], _T]:
+        # If used within a stub file, the following implementation can be
+        # replaced with "...".
+        return lambda a: a
 
-@__dataclass_transform__()
-def dataclass(clz: Type[Any] = None, frozen: bool = False):
-    def warp(clz: Type[Any]):
-        data_clz: Any = dataclasses.dataclass(frozen=frozen)(clz)
+    @__dataclass_transform__()
+    def dataclass(clz: Type[Any] = None, /, *, frozen: bool = True, **kwargs):
+        def warp(clz: Type[Any]):
+            return _register_pytree_dataclass(
+                dataclasses.dataclass(frozen=frozen, **kwargs)(clz)
+            )
+
+        if clz is None:
+            return warp
+
+        return warp(clz)
+
+    def _register_pytree_dataclass(data_clz: Type[Any]):
         meta_fields = []
         data_fields = []
         for name, field_info in data_clz.__dataclass_fields__.items():
@@ -74,12 +103,3 @@ def dataclass(clz: Type[Any] = None, frozen: bool = False):
         # Hack to make this class act as a tuple when unpacked
         data_clz.iter_elems = lambda self: iterate_clz(self)[0].__iter__()
         return data_clz
-
-    if clz is None:
-        return warp
-    else:
-        return warp(clz)
-
-
-def field(pytree_node: bool = True, **kwargs: Any) -> Any:
-    return dataclasses.field(metadata={"pytree_node": pytree_node}, **kwargs)
