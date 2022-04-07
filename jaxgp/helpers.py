@@ -37,41 +37,48 @@ def __dataclass_transform__(
 
 
 @__dataclass_transform__()
-def dataclass(clz: Type[Any], /, *, frozen=False) -> Type[Any]:
-    data_clz: Any = dataclasses.dataclass(frozen=frozen)(clz)
-    meta_fields = []
-    data_fields = []
-    for name, field_info in data_clz.__dataclass_fields__.items():
-        is_pytree_node = field_info.metadata.get("pytree_node", True)
-        if is_pytree_node:
-            data_fields.append(name)
-        else:
-            meta_fields.append(name)
+def dataclass(clz: Type[Any] = None, frozen: bool = False):
+    def warp(clz: Type[Any]):
+        data_clz: Any = dataclasses.dataclass(frozen=frozen)(clz)
+        meta_fields = []
+        data_fields = []
+        for name, field_info in data_clz.__dataclass_fields__.items():
+            is_pytree_node = field_info.metadata.get("pytree_node", True)
+            if is_pytree_node:
+                data_fields.append(name)
+            else:
+                meta_fields.append(name)
 
-    def replace(self: Any, **updates: _T) -> _T:
-        return dataclasses.replace(self, **updates)
+        def replace(self: Any, **updates: _T) -> _T:
+            return dataclasses.replace(self, **updates)
 
-    data_clz.replace = replace
+        data_clz.replace = replace
 
-    def iterate_clz(x: Any) -> Tuple[Tuple[Any, ...], Tuple[Any, ...]]:
-        meta = tuple(getattr(x, name) for name in meta_fields)
-        data = tuple(getattr(x, name) for name in data_fields)
-        return data, meta
+        def iterate_clz(x: Any) -> Tuple[Tuple[Any, ...], Tuple[Any, ...]]:
+            meta = tuple(getattr(x, name) for name in meta_fields)
+            data = tuple(getattr(x, name) for name in data_fields)
+            return data, meta
 
-    def clz_from_iterable(meta: Tuple[Any, ...], data: Tuple[Any, ...]) -> Any:
-        meta_args = tuple(zip(meta_fields, meta))
-        data_args = tuple(zip(data_fields, data))
-        kwargs = dict(meta_args + data_args)
-        return data_clz(**kwargs)
+        def clz_from_iterable(
+            meta: Tuple[Any, ...], data: Tuple[Any, ...]
+        ) -> Any:
+            meta_args = tuple(zip(meta_fields, meta))
+            data_args = tuple(zip(data_fields, data))
+            kwargs = dict(meta_args + data_args)
+            return data_clz(**kwargs)
 
-    jax.tree_util.register_pytree_node(
-        data_clz, iterate_clz, clz_from_iterable
-    )
+        jax.tree_util.register_pytree_node(
+            data_clz, iterate_clz, clz_from_iterable
+        )
 
-    # Hack to make this class act as a tuple when unpacked
-    data_clz.iter_elems = lambda self: iterate_clz(self)[0].__iter__()
+        # Hack to make this class act as a tuple when unpacked
+        data_clz.iter_elems = lambda self: iterate_clz(self)[0].__iter__()
+        return data_clz
 
-    return data_clz
+    if clz is None:
+        return warp
+    else:
+        return warp(clz)
 
 
 def field(pytree_node: bool = True, **kwargs: Any) -> Any:
