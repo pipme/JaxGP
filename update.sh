@@ -5,6 +5,7 @@ setopt extendedglob
 rm -rf -- ^*.sh
 
 cd $docs_dir
+rm -rf ./_build
 make ${1:-html}
 echo $(pwd)
 cd $html_dir
