@@ -16,9 +16,7 @@ class InducingPoints:
 
     @property
     def params(self) -> dict:
-        return {
-            "inducing_points": jnp.zeros((self.num_inducing, self.D)),
-        }
+        return self._params
 
     @params.setter
     def params(self, value):
