@@ -71,6 +71,13 @@ class Stationary(Kernel):
     spectral: bool = False
     name: str = "Stationary Kernel"
 
+    def __post_init__(self) -> None:
+        if len(jnp.unique(jnp.array(self.active_dims))) != len(
+            self.active_dims
+        ):
+            raise ValueError("active_dims should contain unique indices.")
+        assert jnp.all(jnp.array(self.active_dims) >= 0)
+
     def slice_input(self, x: Array) -> Array:
         return x[..., self.active_dims]
 
@@ -89,6 +96,8 @@ class RBF(Stationary):
     distance: Distance = L2Distance()
 
     def __call__(self, x: Array, y: Array, params: Dict) -> Array:
+        # TODO: jit doesn't allow the following, better ways to check?
+        # assert jnp.array(self.active_dims).max() <= x.shape[-1]
         for key, _ in self.params.items():
             assert self.params[key].shape == params[key].shape
         x = self.slice_input(x) / params["lengthscale"]

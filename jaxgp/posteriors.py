@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, Optional, Tuple
 
 import jax.numpy as jnp
 import jax.scipy.linalg as linalg
@@ -41,87 +41,43 @@ class Posterior(GP):
 
 
 @dataclass
-class ConjugatePosterior(Posterior):
-    prior: GPrior
-    likelihood: Gaussian
-    name: Optional[str] = "ConjugatePosterior"
+class GPRPosterior:
+    train_data: Dataset
+    gprior: GPrior
+    Lchol: Array
+    hyp_params: Dict
 
-    def mean(
-        self, training_data: Dataset, params: dict
-    ) -> Callable[[Array], Array]:
-        X, y = training_data.X, training_data.Y
-        sigma = params["likelihood"]["noise"]
-        n_train = training_data.n
-        # Precompute covariance matrices
-        Kff = gram(self.prior.kernel, X, params["kernel"])
-        prior_mean = self.prior.mean_function(X, params["mean_function"])
-        L = linalg.cho_factor(Kff + jnp.eye(n_train) * sigma, lower=True)
-
-        prior_distance = y - prior_mean
-        weights = linalg.cho_solve(L, prior_distance)
-
-        def mean_fn(test_inputs: Array) -> Array:
-            prior_mean_at_test_inputs = self.prior.mean_function(
-                test_inputs, params["mean_function"]
-            )
-            Kfx = cross_covariance(
-                self.prior.kernel, X, test_inputs, params["kernel"]
-            )
-            return prior_mean_at_test_inputs + jnp.dot(Kfx, weights)
-
-        return mean_fn
-
-    def variance(
-        self, training_data: Dataset, params: dict
-    ) -> Callable[[Array], Array]:
-        X = training_data.X
-        n_train = training_data.n
-        variance = params["likelihood"]["noise"]
-        n_train = training_data.n
-        Kff = gram(self.prior.kernel, X, params["kernel"])
-        Kff += jnp.eye(n_train) * 1e-8
-        L = linalg.cho_factor(Kff + jnp.eye(n_train) * variance, lower=True)
-
-        def variance_fn(test_inputs: Array) -> Array:
-            Kfx = cross_covariance(
-                self.prior.kernel, X, test_inputs, params["kernel"]
-            )
-            Kxx = gram(self.prior.kernel, test_inputs, params["kernel"])
-            latent_values = linalg.cho_solve(L, Kfx.T)
-            return Kxx - jnp.dot(Kfx, latent_values)
-
-        return variance_fn
-
-    def marginal_log_likelihood(
-        self,
-        training: Dataset,
-        transformations: Dict,
-        priors: dict = None,
-        static_params: dict = None,
-        negative: bool = False,
-    ) -> Callable[[Dataset], Array]:
-        x, y = training.X, training.Y
-
-        def mll(
-            params: dict,
-        ):
-            params = transform(params=params, transform_map=transformations)
-            if static_params:
-                params = concat_dictionaries(params, transform(static_params))
-            mu = self.prior.mean_function(x, params)
-            gram_matrix = gram(self.prior.kernel, x, params["kernel"])
-            gram_matrix += params["likelihood"]["noise"] * jnp.eye(x.shape[0])
-            L = linalg.cholesky(gram_matrix, lower=True)
-            random_variable = tfd.MultivariateNormalTriL(mu, L)
-
-            log_prior_density = evaluate_priors(params, priors)
-            constant = jnp.array(-1.0) if negative else jnp.array(1.0)
-            return constant * (
-                random_variable.log_prob(y.squeeze()).mean()
-                + log_prior_density
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "num_latent_gps", self.train_data.Y.shape[-1])
+        if self.num_latent_gps != 1:  # type: ignore
+            raise NotImplementedError(
+                "Currently only one latent GP is supported for GPR."
             )
 
-        return mll
+    def predict_f(
+        self, X_test: Array, full_cov: bool = False
+    ) -> Tuple[Array, Array]:
+        if X_test.ndim == 1:
+            X_test = X_test[..., None]
+        X, Y = self.train_data.X, self.train_data.Y
+        prior_distance = Y - self.gprior.mean(self.hyp_params)(X)
+        weights = linalg.cho_solve((self.Lchol, True), prior_distance)
+        prior_mean_at_test_inputs = self.gprior.mean(self.hyp_params)(X_test)
+        Ktx = cross_covariance(
+            self.gprior.kernel, X_test, X, self.hyp_params["kernel"]
+        )
+
+        mean = prior_mean_at_test_inputs + Ktx @ weights
+
+        Ktt = gram(
+            self.gprior.kernel, X_test, self.hyp_params["kernel"], full_cov
+        )
+        tmp = linalg.solve_triangular(self.Lchol, Ktx.T, lower=True)
+        if full_cov:
+            cov = Ktt - tmp.T @ tmp
+        else:
+            cov = Ktt - jnp.sum(jnp.square(tmp), 0)
+        return mean, cov
 
 
 class SGPRPosterior:
@@ -221,16 +177,3 @@ class HeteroskedasticSGPRPosterior:
             )
             var = jnp.tile(var[None, ...], [self.num_latent_gps, 1])
         return mean, var
-
-
-def construct_posterior(
-    prior: GPrior, likelihood: Likelihood, method: str = "exact"
-) -> Posterior:
-    if method == "exact":
-        assert isinstance(likelihood, Gaussian)
-        PosteriorGP = ConjugatePosterior
-    else:
-        raise NotImplementedError(
-            f"No posterior implemented for {likelihood.name} likelihood"
-        )
-    return PosteriorGP(prior=prior, likelihood=likelihood)
