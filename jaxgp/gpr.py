@@ -9,7 +9,7 @@ from .datasets import Dataset
 from .gps import GPrior
 from .helpers import Array
 from .kernels import cross_covariance, gram
-from .likelihoods import Gaussian, HeteroskedasticGaussian, Likelihood
+from .likelihoods import FixedHeteroskedasticGaussian, Gaussian, Likelihood
 from .parameters import build_transforms
 from .posteriors import GPRPosterior
 from .utils import concat_dictionaries
@@ -49,7 +49,7 @@ class GPR:
         self.sigma_sq = sigma_sq
         if sigma_sq is not None:
             self.sigma_sq = self.sigma_sq.squeeze()
-            self.likelihood = HeteroskedasticGaussian()
+            self.likelihood = FixedHeteroskedasticGaussian()
         else:
             self.likelihood = Gaussian()
         self.num_latent_gps = self.train_data.Y.shape[1]

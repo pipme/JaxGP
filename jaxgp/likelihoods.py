@@ -129,36 +129,14 @@ class Gaussian(Likelihood):
 
 
 @dataclass
-class HeteroskedasticGaussian(Likelihood):
-    """_summary_
+class FixedHeteroskedasticGaussian(Likelihood):
+    """Fixed heteroskedastic Gaussian noise."""
 
-    Parameters
-    ----------
-    num_data : int
-        Number of data points.
-    user_provided: bool, default=False
-        Whether the noise variance vector is provided by user. If True, the
-        noise vector need to be provided as ``sigma_sq``. ``sigma_sq``'s shape
-        can be (N,), (N, 1) or (N, latent_dim). If False, ``num_data`` need to
-        be initialized and the noise params are set to ones as default.
-    """
-
-    num_data: Optional[int] = None
-    user_provided: bool = True
-    name: str = "Heteroskedastic Gaussian"
-
-    def __post_init__(self) -> None:
-        if self.num_data is None and not self.user_provided:
-            raise ValueError(
-                "'num_data' is required if the noise is not provided (user_provided = False)"
-            )
+    name: str = "Fixed Heteroskedastic Gaussian"
 
     @property
     def params(self) -> Dict:
-        if self.user_provided:
-            return {}
-        else:
-            return {"noise": jnp.array([1.0] * self.num_data)}
+        return {}
 
     @property
     def link_function(self) -> Callable:
@@ -169,10 +147,10 @@ class HeteroskedasticGaussian(Likelihood):
 
     @property
     def transforms(self) -> Dict:
-        if self.user_provided:
-            return {}
-        else:
-            return {"noise": Config.positive_bijector}
+        return {}
+
+    def compute(self, params: Array, sigma_sq: Array):
+        return sigma_sq.squeeze()
 
     def variational_expectation(
         self,
@@ -236,17 +214,152 @@ class HeteroskedasticGaussian(Likelihood):
         return Ymu, Yvar
 
     def check_user_provided(self, params, sigma_sq):  # type: ignore
-        if not self.user_provided:
-            sigma_sq = params["noise"]
-        else:
-            if sigma_sq is None:
-                raise ValueError("sigma_sq should be provided")
-            assert jnp.all(sigma_sq >= 0)
+        if sigma_sq is None:
+            raise ValueError("sigma_sq should be provided")
+        assert jnp.all(sigma_sq >= 0)
 
         if sigma_sq.ndim == 1:
             sigma_sq = jnp.expand_dims(sigma_sq, -1)  # [N, 1]
         assert sigma_sq.ndim == 2
         return sigma_sq  # [N, 1] or [N, latent_dim]
+
+
+@dataclass
+class HeteroskedasticGaussianVBMC(Likelihood):
+    """_summary_
+
+    Parameters
+    ----------
+    constant_add : bool, defaults to False
+        Whether to add constant noise.
+    user_provided_add : bool, defaults to False
+        Whether to add user provided (input) noise.
+    scale_user_provided : bool, defaults to False
+        Whether to scale uncertainty in provided noise. If
+        ``user_provided_add = False`` then this does nothing.
+    rectified_linear_output_dependent_add : bool, defaults to False
+        Whether to add rectified linear output-dependent noise.
+
+    user_provided: bool, default=False
+        Whether the noise variance vector is provided by user. If True, the
+        noise vector need to be provided as ``sigma_sq``. ``sigma_sq``'s shape
+        can be (N,), (N, 1) or (N, latent_dim). If False, ``num_data`` need to
+        be initialized and the noise params are set to ones as default.
+    """
+
+    constant_add: bool = False
+    user_provided_add: bool = False
+    scale_user_provided: bool = False
+    rectified_linear_output_dependent_add: bool = False
+    name: str = "Heteroskedastic Gaussian for VBMC"
+
+    def __post_init__(self) -> None:
+        if self.rectified_linear_output_dependent_add:
+            raise NotImplementedError
+
+    @property
+    def params(self) -> Dict:
+        params = {}
+        if not self.constant_add:
+            params["noise_add"] = jnp.array([0.0])
+        if self.user_provided_add and self.scale_user_provided:
+            params["scale_user_noise"] = jnp.array([1.0])
+        if self.rectified_linear_output_dependent_add:
+            params["intercept_rectify"] = jnp.array([0.0])
+            params["scale_rectify"] = jnp.array([1.0])
+        return params
+
+    @property
+    def link_function(self) -> Callable:
+        def identity_fn(x):  # type: ignore
+            return x
+
+        return identity_fn
+
+    @property
+    def transforms(self) -> Dict:
+        return {
+            "noise_add": Config.positive_bijector,
+            "scale_user_noise": Config.positive_bijector,
+            "intercept_rectify": Config.identity_bijector,
+            "scale_rectify": Config.positive_bijector,
+        }
+
+    def compute(self, params: Dict, sigma_sq: Optional[Array] = None) -> Array:
+        sigma_sq = sigma_sq.squeeze()
+        assert sigma_sq.ndim == 1
+        if self.constant_add:
+            noise_var = params["noise_add"]
+        else:
+            noise_var = jnp.finfo(jnp.float64).eps
+
+        if self.user_provided_add:
+            noise_var += sigma_sq
+        elif self.scale_user_provided:
+            noise_var += params["scale_user"] * sigma_sq
+
+        return noise_var
+
+    def variational_expectation(
+        self,
+        params: Dict,
+        Fmu: Array,
+        Fvar: Array,
+        Y: Array,
+        sigma_sq: Optional[Array] = None,
+    ) -> Array:
+        sigma_sq = self.compute(params, sigma_sq)
+        return jnp.sum(
+            -0.5 * jnp.log(2 * jnp.pi)
+            - 0.5 * jnp.log(sigma_sq)
+            - 0.5 * ((Y - Fmu) ** 2 + Fvar) / sigma_sq,
+            axis=-1,
+        )
+
+    def predict_mean_and_var(
+        self,
+        params: Dict,
+        Fmu: Array,
+        Fvar: Array,
+        full_cov: bool = False,
+        sigma_sq: Optional[Array] = None,
+    ) -> Tuple[Array, Array]:
+        """Predict mean and var/cov for y.
+
+        Parameters
+        ----------
+        params : Dict
+            Parameter dictionary.
+        Fmu : Array
+            Mean values, with shape [N, latent_dim].
+        Fvar : Array
+            Variance or covariance matrix values, with shape [N, latent_dim]
+            or [latent_dim, N, N].
+
+        full_cov : bool, optional
+            Whether to compute covariance matrix, defalut=False.
+
+        Returns
+        -------
+        Ymu: Array
+            Mean values.
+        Yvar: Array
+            Variance or covariance matrix values.
+        """
+        sigma_sq = self.compute(params, sigma_sq)
+        if full_cov:
+            assert Fvar.ndim >= 3
+            # For details, see discussions in https://github.com/google/jax/issues/2680#issuecomment-804269672
+            i, j = jnp.diag_indices(min(Fvar.shape[-2:]))
+            Ymu = Fmu
+            sigma_sq = jnp.transpose(sigma_sq)  # [..., N]
+            Yvar = Fvar.at[..., i, j].add(sigma_sq)
+            return Ymu, Yvar
+        else:
+            assert Fvar.ndim == 2
+            Ymu = Fmu
+            Yvar = Fvar + sigma_sq
+        return Ymu, Yvar
 
 
 @dataclass

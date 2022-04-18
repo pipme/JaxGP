@@ -130,10 +130,15 @@ class SGPRPosterior:
 
 class HeteroskedasticSGPRPosterior:
     def __init__(
-        self, train_data: Dataset, gprior: GPrior, sigma_sq_user: Array
+        self,
+        train_data: Dataset,
+        gprior: GPrior,
+        likelihood: Likelihood,
+        sigma_sq_user: Array,
     ) -> None:
         self.train_data = train_data
         self.gprior = gprior
+        self.likelihood = likelihood
         self.num_latent_gps = train_data.Y.shape[-1]
         self.sigma_sq_user = sigma_sq_user
 
@@ -148,7 +153,8 @@ class HeteroskedasticSGPRPosterior:
         Kuu = cross_covariance(self.gprior.kernel, iv, iv, params["kernel"])
         Kuu = default_jitter(Kuu)
         Kus = cross_covariance(self.gprior.kernel, iv, X_new, params["kernel"])
-        sigma = jnp.sqrt(self.sigma_sq_user)
+        sigma_sq = self.likelihood.compute(params, self.sigma_sq_user)
+        sigma = jnp.sqrt(sigma_sq)
         L = linalg.cholesky(Kuu, lower=True)
         A = linalg.solve_triangular(L, Kuf, lower=True) / sigma[None, :]
         B = A @ A.T + jnp.eye(num_inducing)

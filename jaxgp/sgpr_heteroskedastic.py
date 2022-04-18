@@ -1,5 +1,5 @@
 from collections import namedtuple
-from typing import Dict, NamedTuple, Optional, Tuple
+from typing import Dict, NamedTuple, Optional, Tuple, Union
 
 import jax
 import jax.numpy as jnp
@@ -11,7 +11,10 @@ from .datasets import Dataset
 from .gps import GPrior
 from .helpers import Array
 from .kernels import cross_covariance, gram
-from .likelihoods import HeteroskedasticGaussian
+from .likelihoods import (
+    FixedHeteroskedasticGaussian,
+    HeteroskedasticGaussianVBMC,
+)
 from .parameters import build_transforms
 from .posteriors import HeteroskedasticSGPRPosterior
 from .utils import concat_dictionaries, inducingpoint_wrapper
@@ -22,19 +25,21 @@ class HeteroskedasticSGPR:
         self,
         train_data: Dataset,
         gprior: GPrior,
-        likelihood: HeteroskedasticGaussian,
+        likelihood: Union[
+            FixedHeteroskedasticGaussian, HeteroskedasticGaussianVBMC
+        ],
         inducing_points: InducingPoints,
-        sigma_sq: Array,
+        sigma_sq: Optional[Array] = None,
         hyp_prior: Optional[GPrior] = None,
     ) -> None:
         self.train_data = train_data
         self.gprior = gprior
         self.likelihood = likelihood
-        if not self.likelihood.user_provided:
-            raise ValueError(
-                "Currently only user provided noise is supported."
-            )
-        self.sigma_sq_user = sigma_sq.squeeze()  # [N]
+
+        if sigma_sq is not None:
+            self.sigma_sq_user = sigma_sq.squeeze()  # [N]
+        else:
+            self.sigma_sq_user = None
 
         self.inducing_points = inducingpoint_wrapper(inducing_points)
 
@@ -63,7 +68,7 @@ class HeteroskedasticSGPR:
     def _common_calculation(self, params: Dict):
         X = self.train_data.X
         iv = params["inducing_points"]
-        sigma_sq = self.sigma_sq_user  # [N]
+        sigma_sq = self.likelihood.compute(params, self.sigma_sq_user)  # [N]
 
         Kuf = cross_covariance(self.gprior.kernel, iv, X, params["kernel"])
         Kuu = cross_covariance(self.gprior.kernel, iv, iv, params["kernel"])
@@ -87,7 +92,7 @@ class HeteroskedasticSGPR:
         num_data = self.num_data
         outdim = Y.shape[1]
         kdiag = gram(self.gprior.kernel, X, params["kernel"], full_cov=False)
-        sigma_sq = self.sigma_sq_user  # [N]
+        sigma_sq = self.likelihood.compute(params, self.sigma_sq_user)  # [N]
 
         # tr(KD^{-1})
         trace_k = jnp.sum(kdiag / sigma_sq)
@@ -110,7 +115,8 @@ class HeteroskedasticSGPR:
 
         X, Y = self.train_data.X, self.train_data.Y
         err = Y - self.gprior.mean(params)(X)
-        sigma_sq = self.sigma_sq_user
+        sigma_sq = self.likelihood.compute(params, self.sigma_sq_user)  # [N]
+
         sigma = jnp.sqrt(sigma_sq)
 
         Aerr = (A / sigma[None, :]) @ err
@@ -150,19 +156,21 @@ class HeteroskedasticSGPR:
             self.gprior.kernel, params["inducing_points"], params["kernel"]
         )
         Kuu = default_jitter(Kuu)
-        sig = Kuu + Kuf / self.sigma_sq_user[None, :] @ Kuf.T
+        sigma_sq = self.likelihood.compute(params, self.sigma_sq_user)  # [N]
+
+        sig = Kuu + Kuf / sigma_sq[None, :] @ Kuf.T
         sig_sqrt = linalg.cholesky(sig, lower=True)
         sig_sqrt_kuu = linalg.solve_triangular(sig_sqrt, Kuu, lower=True)
 
         cov = sig_sqrt_kuu.T @ sig_sqrt_kuu
         err = Y - self.gprior.mean(params)(X)
         mu = sig_sqrt_kuu.T @ linalg.solve_triangular(
-            sig_sqrt, Kuf / self.sigma_sq_user[None, :] @ err, lower=True
+            sig_sqrt, Kuf / sigma_sq[None, :] @ err, lower=True
         )
 
         return mu, cov
 
     def posterior(self):
         return HeteroskedasticSGPRPosterior(
-            self.train_data, self.gprior, self.sigma_sq_user
+            self.train_data, self.gprior, self.likelihood, self.sigma_sq_user
         )

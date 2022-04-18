@@ -11,6 +11,7 @@ from jaxgp.datasets import Dataset
 from jaxgp.gps import GPrior
 from jaxgp.parameters import copy_dict_structure, initialise
 from jaxgp.sgpr import SGPR
+from jaxgp.sgpr_heteroskedastic import HeteroskedasticSGPR
 from jaxgp.svgp import SVGP
 
 __author__ = "Chengkun Li"

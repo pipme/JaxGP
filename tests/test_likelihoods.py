@@ -5,7 +5,7 @@ import jax.numpy as jnp
 import jax.random as jr
 import numpy as np
 
-from jaxgp.likelihoods import Gaussian, HeteroskedasticGaussian
+from jaxgp.likelihoods import FixedHeteroskedasticGaussian, Gaussian
 
 
 def test_gaussian_predict_mean_and_var_shape():
@@ -39,7 +39,7 @@ def test_heteroskedastic_gaussian():
 
 
 def test_heteroskedastic_gaussian_predict_mean_and_var_shape():
-    likelihood = HeteroskedasticGaussian(user_provided=True)
+    likelihood = FixedHeteroskedasticGaussian()
     params = likelihood.params
     keys = jr.split(jr.PRNGKey(42))
     N = 3
