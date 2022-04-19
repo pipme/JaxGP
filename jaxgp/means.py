@@ -53,20 +53,20 @@ class Constant(MeanFunction):
     output_dim: int = 1
     name: str = "Constant mean function"
     _params: Dict = field(
-        default_factory=lambda: {"constant": jnp.array([1.0])}
+        default_factory=lambda: {"mean_const": jnp.array([1.0])}
     )
 
     def __call__(self, x: Array, params: Dict) -> Array:
         out_shape = (x.shape[0], self.output_dim)
-        return jnp.ones(shape=out_shape) * params["constant"]
+        return jnp.ones(shape=out_shape) * params["mean_const"]
 
     @property
     def params(self) -> Dict:
-        return {"constant": jnp.array([1.0])}
+        return {"mean_const": jnp.array([1.0])}
 
     @property
     def transforms(self) -> Dict:
-        return {"constant": Config.identity_bijector}
+        return {"mean_const": Config.identity_bijector}
 
 
 @dataclass
@@ -76,20 +76,21 @@ class Quadratic(MeanFunction):
     .. math::
         m(x) = m_0 - \frac{1}{2} \sum_{i = 1}^{D} (\frac{x^{(i)} - x_{m}^{(i)}}{\omega^{(i)}})^2
 
+    mean_const: The parameter :math:`m_0`.
     scale: The parameter :math:`\omega`.
     """
     input_dim: int = 1
     name: str = "Quadratic mean function"
 
     def __call__(self, x: Array, params: Dict) -> Array:
-        return params["m0"] - 0.5 * jnp.sum(
+        return params["mean_const"] - 0.5 * jnp.sum(
             ((x - params["xm"]) / params["scale"]) ** 2, -1, keepdims=True
         )
 
     @property
     def params(self) -> Dict:
         return {
-            "m0": jnp.array([0.0]),
+            "mean_const": jnp.array([0.0]),
             "scale": jnp.array([1.0] * self.input_dim),
             "xm": jnp.array([0.0] * self.input_dim),
         }
@@ -97,7 +98,7 @@ class Quadratic(MeanFunction):
     @property
     def transforms(self) -> Dict:
         return {
-            "m0": Config.identity_bijector,
+            "mean_const": Config.identity_bijector,
             "scale": Config.positive_bijector,
             "xm": Config.identity_bijector,
         }

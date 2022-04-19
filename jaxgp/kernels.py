@@ -92,7 +92,7 @@ class Stationary(Kernel):
 
 @dataclass
 class RBF(Stationary):
-    name: str = "Radial basis function kernel"
+    name: str = "Radial basis function kernel (ARD)"
     distance: Distance = L2Distance()
 
     def __call__(self, x: Array, y: Array, params: Dict) -> Array:

@@ -9,8 +9,9 @@ from .config import default_jitter
 from .datasets import Dataset
 from .gps import GP, GPrior
 from .helpers import Array, dataclass
-from .kernels import cross_covariance, gram
+from .kernels import RBF, cross_covariance, gram
 from .likelihoods import Gaussian, Likelihood, NonConjugateLikelihoods
+from .means import Quadratic, Zero
 from .parameters import copy_dict_structure
 from .utils import concat_dictionaries
 
@@ -128,6 +129,7 @@ class SGPRPosterior:
         return mean, var
 
 
+# TODO: convert to frozen dataclass?
 class HeteroskedasticSGPRPosterior:
     def __init__(
         self,
@@ -183,3 +185,127 @@ class HeteroskedasticSGPRPosterior:
             )
             var = jnp.tile(var[None, ...], [self.num_latent_gps, 1])
         return mean, var
+
+    def quad(
+        self, params: Dict, mu: Array, sigma: Array, compute_var: bool = False
+    ):
+        """
+        Bayesian quadrature for SGPR.
+
+        Compute the integral of a function represented by a Gaussian
+        Process with respect to a given Gaussian measure.
+
+        Parameters
+        ==========
+        mu : array_like
+            Either a array of shape ``(N, D)`` with each row containing the
+            mean of a single Gaussian measure, or a single floating point
+            number which is interpreted as an array of shape ``(1, D)``.
+        sigma : array_like
+            Either a array of shape ``(N, D)`` with each row containing the
+            variance of a single Gaussian measure, or a single floating point
+            number which is interpreted as an array of shape ``(1, D)``.
+        compute_var : bool, defaults to False
+            Whether to compute variance for each integral.
+
+        Returns
+        =======
+        F : ndarray
+            The conputed integrals in an array with shape ``(N, 1)``.
+        F_var : ndarray, optional
+            The computed variances of the integrals in an array with
+            shape ``(N, 1)``.
+        """
+
+        if not isinstance(self.gprior.kernel, RBF):
+            raise ValueError(
+                "Bayesian quadrature only supports the squared exponential "
+                "kernel."
+            )
+
+        X, Y = self.train_data.X, self.train_data.Y
+        N, D = X.shape
+
+        if jnp.size(mu) == 1:
+            mu = jnp.tile(mu, (1, D))
+
+        N_star = mu.shape[0]
+        if jnp.size(sigma) == 1:
+            sigma = jnp.tile(sigma, (1, D))
+
+        quadratic_mean_fun = isinstance(self.gprior.mean_function, Quadratic)
+
+        # GP mean function hyperparameters
+        if isinstance(self.gprior.mean_function, Zero):
+            m0 = 0
+        else:
+            m0 = params["mean_function"]["mean_const"]
+
+        if quadratic_mean_fun:
+            xm = params["mean_function"]["xm"]
+            scale = params["mean_function"]["scale"]
+
+        sigma_sq_obs = self.likelihood.compute(params, self.sigma_sq_user)
+        sigma_obs = jnp.sqrt(sigma_sq_obs)
+
+        iv = params["inducing_points"]  # [N_iv, D]
+        num_inducing = iv.shape[0]
+
+        Kuf = cross_covariance(self.gprior.kernel, iv, X, params["kernel"])
+        Kuu = cross_covariance(self.gprior.kernel, iv, iv, params["kernel"])
+        Kuu = default_jitter(Kuu)
+        L = linalg.cholesky(Kuu, lower=True)
+        A = linalg.solve_triangular(L, Kuf, lower=True) / sigma_obs[None, :]
+        B = A @ A.T + jnp.eye(num_inducing)
+        LB = linalg.cholesky(B, lower=True)
+
+        ell = params["kernel"]["lengthscale"]  # [D]
+        sf2 = params["kernel"]["outputscale"]
+        tau = jnp.sqrt(sigma**2 + ell**2)  # [N_star, D]
+        nf = (
+            sf2 * jnp.prod(ell) / jnp.prod(tau, 1)
+        )  # Covariance normalization factor, [N_star]
+
+        sum_delta2 = jnp.zeros((N_star, num_inducing))
+        for i in range(0, D):
+            sum_delta2 += (
+                (mu[:, i] - jnp.reshape(iv[:, i], (-1, 1))).T
+                / tau[:, i : i + 1]
+            ) ** 2
+        w = jnp.reshape(nf, (-1, 1)) * jnp.exp(
+            -0.5 * sum_delta2
+        )  # [N_star, N_iv]
+
+        err = Y - self.gprior.mean(params)(X)  # [N, D]
+        Aerr = (A / sigma[None, :]) @ err
+        tmp = linalg.cho_solve((LB, True), Aerr)
+        tmp = linalg.solve_triangular(L, tmp, lower=True)  # [N_iv, 1]
+        F = w @ tmp + m0
+
+        if quadratic_mean_fun:
+            nu_k = -0.5 * jnp.sum(
+                1
+                / scale**2
+                * (mu**2 + sigma**2 - 2 * mu * xm + xm**2),
+                1,
+            )
+            F += nu_k
+
+        if compute_var:
+            tau_kk = jnp.sqrt(2 * sigma**2 + ell**2)  # [N, D]
+            nf_kk = sf2 * jnp.prod(ell) / jnp.sum(jnp.log(tau_kk), 1)  # [N]
+
+            # K_tilde^{-1} = L^-T B^-1 L^-1
+            tmp = linalg.solve_triangular(L, w.T, lower=True)
+            tmp = linalg.cho_solve((LB, True), tmp)
+            invKwk_1 = linalg.solve_triangular(L.T, tmp)
+            invKwk_2 = linalg.cho_solve((L, True), w.T)
+            invKwk = invKwk_1 - invKwk_2  # [N_iv, N]
+            J_kk = nf_kk - jnp.sum(w * invKwk.T, 1)
+
+            F_var = jnp.maximum(jnp.finfo(jnp.float64).eps, J_kk)
+
+        if compute_var:
+            return F, F_var
+
+        return F

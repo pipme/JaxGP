@@ -31,6 +31,9 @@ class Likelihood:
     def transforms(self) -> Dict:
         raise NotImplementedError
 
+    def compute(self, params: Dict, sigma_sq: Optional[Array] = None):
+        raise NotImplementedError
+
     def variational_expectation(self, params: Dict, Fmu, Fvar, Y):
         """
         Compute the expected log density of the data, given a Gaussian
@@ -149,7 +152,7 @@ class FixedHeteroskedasticGaussian(Likelihood):
     def transforms(self) -> Dict:
         return {}
 
-    def compute(self, params: Array, sigma_sq: Array):
+    def compute(self, params: Dict, sigma_sq: Array):
         return sigma_sq.squeeze()
 
     def variational_expectation(

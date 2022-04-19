@@ -29,15 +29,15 @@ class HeteroskedasticSGPR:
             FixedHeteroskedasticGaussian, HeteroskedasticGaussianVBMC
         ],
         inducing_points: InducingPoints,
-        sigma_sq: Optional[Array] = None,
+        sigma_sq_user: Optional[Array] = None,
         hyp_prior: Optional[GPrior] = None,
     ) -> None:
         self.train_data = train_data
         self.gprior = gprior
         self.likelihood = likelihood
 
-        if sigma_sq is not None:
-            self.sigma_sq_user = sigma_sq.squeeze()  # [N]
+        if sigma_sq_user is not None:
+            self.sigma_sq_user = sigma_sq_user.squeeze()  # [N]
         else:
             self.sigma_sq_user = None
 
