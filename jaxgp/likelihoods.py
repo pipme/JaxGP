@@ -263,8 +263,8 @@ class HeteroskedasticGaussianVBMC(Likelihood):
     @property
     def params(self) -> Dict:
         params = {}
-        if not self.constant_add:
-            params["noise_add"] = jnp.array([0.0])
+        if self.constant_add:
+            params["noise_add"] = jnp.array([1.0])
         if self.user_provided_add and self.scale_user_provided:
             params["scale_user_noise"] = jnp.array([1.0])
         if self.rectified_linear_output_dependent_add:
@@ -281,24 +281,30 @@ class HeteroskedasticGaussianVBMC(Likelihood):
 
     @property
     def transforms(self) -> Dict:
-        return {
-            "noise_add": Config.positive_bijector,
-            "scale_user_noise": Config.positive_bijector,
-            "intercept_rectify": Config.identity_bijector,
-            "scale_rectify": Config.positive_bijector,
-        }
+        transforms = {}
+        if self.constant_add:
+            transforms["noise_add"] = Config.positive_bijector
+        if self.user_provided_add and self.scale_user_provided:
+            transforms["scale_user_noise"] = Config.positive_bijector
+        if self.rectified_linear_output_dependent_add:
+            transforms["intercept_rectify"] = Config.identity_bijector
+            transforms["scale_rectify"] = Config.positive_bijector
+        return transforms
 
     def compute(self, params: Dict, sigma_sq: Optional[Array] = None) -> Array:
-        sigma_sq = sigma_sq.squeeze()
-        assert sigma_sq.ndim == 1
+        if sigma_sq is not None:
+            sigma_sq = sigma_sq.squeeze()
+            assert sigma_sq.ndim == 1
         if self.constant_add:
             noise_var = params["noise_add"]
         else:
             noise_var = jnp.finfo(jnp.float64).eps
 
         if self.user_provided_add:
+            assert sigma_sq is not None, "sigma_sq need to be provided"
             noise_var += sigma_sq
         elif self.scale_user_provided:
+            assert sigma_sq is not None, "sigma_sq need to be provided"
             noise_var += params["scale_user"] * sigma_sq
 
         return noise_var

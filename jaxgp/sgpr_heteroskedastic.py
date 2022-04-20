@@ -68,7 +68,9 @@ class HeteroskedasticSGPR:
     def _common_calculation(self, params: Dict):
         X = self.train_data.X
         iv = params["inducing_points"]
-        sigma_sq = self.likelihood.compute(params, self.sigma_sq_user)  # [N]
+        sigma_sq = self.likelihood.compute(
+            params["likelihood"], self.sigma_sq_user
+        )  # [N]
 
         Kuf = cross_covariance(self.gprior.kernel, iv, X, params["kernel"])
         Kuu = cross_covariance(self.gprior.kernel, iv, iv, params["kernel"])
@@ -92,7 +94,9 @@ class HeteroskedasticSGPR:
         num_data = self.num_data
         outdim = Y.shape[1]
         kdiag = gram(self.gprior.kernel, X, params["kernel"], full_cov=False)
-        sigma_sq = self.likelihood.compute(params, self.sigma_sq_user)  # [N]
+        sigma_sq = self.likelihood.compute(
+            params["likelihood"], self.sigma_sq_user
+        )  # [N]
 
         # tr(KD^{-1})
         trace_k = jnp.sum(kdiag / sigma_sq)
@@ -115,7 +119,9 @@ class HeteroskedasticSGPR:
 
         X, Y = self.train_data.X, self.train_data.Y
         err = Y - self.gprior.mean(params)(X)
-        sigma_sq = self.likelihood.compute(params, self.sigma_sq_user)  # [N]
+        sigma_sq = self.likelihood.compute(
+            params["likelihood"], self.sigma_sq_user
+        )  # [N]
 
         sigma = jnp.sqrt(sigma_sq)
 
@@ -156,7 +162,9 @@ class HeteroskedasticSGPR:
             self.gprior.kernel, params["inducing_points"], params["kernel"]
         )
         Kuu = default_jitter(Kuu)
-        sigma_sq = self.likelihood.compute(params, self.sigma_sq_user)  # [N]
+        sigma_sq = self.likelihood.compute(
+            params["likelihood"], self.sigma_sq_user
+        )  # [N]
 
         sig = Kuu + Kuf / sigma_sq[None, :] @ Kuf.T
         sig_sqrt = linalg.cholesky(sig, lower=True)
