@@ -156,7 +156,9 @@ class HeteroskedasticSGPRPosterior:
         Kuu = cross_covariance(self.gprior.kernel, iv, iv, params["kernel"])
         Kuu = default_jitter(Kuu)
         Kus = cross_covariance(self.gprior.kernel, iv, X_new, params["kernel"])
-        sigma_sq = self.likelihood.compute(params, self.sigma_sq_user)
+        sigma_sq = self.likelihood.compute(
+            params["likelihood"], self.sigma_sq_user
+        )
         sigma = jnp.sqrt(sigma_sq)
         L = linalg.cholesky(Kuu, lower=True)
         A = linalg.solve_triangular(L, Kuf, lower=True) / sigma[None, :]
@@ -166,7 +168,7 @@ class HeteroskedasticSGPRPosterior:
         c = linalg.solve_triangular(LB, Aerr, lower=True)
         tmp1 = linalg.solve_triangular(L, Kus, lower=True)
         tmp2 = linalg.solve_triangular(LB, tmp1, lower=True)
-        mean = tmp2.T @ c
+        mean = tmp2.T @ c  # [N, num_latent_gps]
         if full_cov:
             var = (
                 cross_covariance(
@@ -175,7 +177,9 @@ class HeteroskedasticSGPRPosterior:
                 + tmp2.T @ tmp2
                 - tmp1.T @ tmp1
             )
-            var = jnp.tile(var[None, ...], [self.num_latent_gps, 1, 1])
+            var = jnp.tile(
+                var[None, ...], [self.num_latent_gps, 1, 1]
+            )  # [num_latent_gps, N, N]
         else:
             var = (
                 gram(
@@ -184,7 +188,9 @@ class HeteroskedasticSGPRPosterior:
                 + jnp.sum(tmp2**2, 0)
                 - jnp.sum(tmp1**2, 0)
             )
-            var = jnp.tile(var[None, ...], [self.num_latent_gps, 1])
+            var = jnp.tile(
+                var[None, ...], [self.num_latent_gps, 1]
+            )  # [num_latent_gps, N]
         return mean, var
 
     def quad(
@@ -346,10 +352,9 @@ class HeteroskedasticSGPRPosterior:
         Returns
         =======
         F : Array
-            The computed integral value with shape ``()``.
+            The computed integral value.
         F_var : Array or None
-            The computed variances of the integrals in an array with
-            shape ``(K, 1)``. `F_var` = None if `compute_var` is False.
+            The computed variance of the integral. `F_var` = None if `compute_var` is False.
         I: np.ndarray, optional
             Integral value components with shape ``(K)``.
         J: np.ndarray, optional
@@ -383,7 +388,9 @@ class HeteroskedasticSGPRPosterior:
             xm = params["mean_function"]["xm"]
             scale = params["mean_function"]["scale"]
 
-        sigma_sq_obs = self.likelihood.compute(params, self.sigma_sq_user)
+        sigma_sq_obs = self.likelihood.compute(
+            params["likelihood"], self.sigma_sq_user
+        )
         sigma_obs = jnp.sqrt(sigma_sq_obs)
 
         iv = params["inducing_points"]  # [N_iv, D]
@@ -398,7 +405,7 @@ class HeteroskedasticSGPRPosterior:
         LB = linalg.cholesky(B, lower=True)
 
         ell = params["kernel"]["lengthscale"]  # [D]
-        sf2 = params["kernel"]["outputscale"]
+        sf2 = params["kernel"]["outputscale"].squeeze()
         tau = jnp.sqrt(sigma**2 + ell**2)  # [K, D]
         nf = (
             sf2 * jnp.prod(ell) / jnp.prod(tau, 1)
@@ -429,7 +436,7 @@ class HeteroskedasticSGPRPosterior:
             I += nu_k
         F = jnp.sum(weights * I)
 
-        J = np.zeros((K, K))
+        J = jnp.zeros((K, K))
         F_var = 0.0
         for k in range(K):
             for j in range(k + 1):
@@ -457,12 +464,12 @@ class HeteroskedasticSGPRPosterior:
                         * jnp.maximum(jnp.finfo(jnp.float64).eps, J_jk)
                     )
                     if separate_K:
-                        J[k, k] = J_jk
+                        J.at[k, k].set(J_jk)
                 else:
                     F_var += 2 * weights[j] * weights[k] * J_jk
                     if separate_K:
-                        J[j, k] = J_jk
-                        J[k, j] = J_jk
+                        J.at[j, k].set(J_jk)
+                        J.at[k, j].set(J_jk)
 
         # Correct for numerical error
         if compute_var:
