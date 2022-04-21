@@ -297,10 +297,10 @@ class HeteroskedasticSGPRPosterior:
             nf_kk = sf2 * jnp.prod(ell) / jnp.prod(tau_kk, 1)  # [N]
 
             # K_tilde^{-1} = L^-T B^-1 L^-1
+            invKwk_1 = linalg.cho_solve((L, True), w.T)
             tmp = linalg.solve_triangular(L, w.T, lower=True)
             tmp = linalg.cho_solve((LB, True), tmp)
-            invKwk_1 = linalg.solve_triangular(L.T, tmp)
-            invKwk_2 = linalg.cho_solve((L, True), w.T)
+            invKwk_2 = linalg.solve_triangular(L.T, tmp)
             invKwk = invKwk_1 - invKwk_2  # [N_iv, N]
             J_kk = nf_kk - jnp.sum(w * invKwk.T, 1)
 
@@ -441,10 +441,10 @@ class HeteroskedasticSGPRPosterior:
                 J_jk = nf_jk * jnp.exp(-0.5 * jnp.sum(delta_jk**2))
 
                 # K_tilde^{-1} = L^-T B^-1 L^-1
+                invKwk_1 = linalg.cho_solve((L, True), w[k])
                 tmp = linalg.solve_triangular(L, w[k], lower=True)
                 tmp = linalg.cho_solve((LB, True), tmp)
-                invKwk_1 = linalg.solve_triangular(L.T, tmp)
-                invKwk_2 = linalg.cho_solve((L, True), w[k])
+                invKwk_2 = linalg.solve_triangular(L.T, tmp)
                 invKwk = invKwk_1 - invKwk_2  # [N_iv, 1]
                 invKwk = invKwk.squeeze()
                 J_jk -= jnp.dot(w[j], invKwk)
