@@ -347,12 +347,12 @@ class HeteroskedasticSGPRPosterior:
         =======
         F : Array
             The computed integral value with shape ``()``.
-        F_var : ndarray, optional
+        F_var : Array or None
             The computed variances of the integrals in an array with
-            shape ``(K, 1)``.
-        I:
+            shape ``(K, 1)``. `F_var` = None if `compute_var` is False.
+        I: np.ndarray, optional
             Integral value components with shape ``(K)``.
-        J:
+        J: np.ndarray, optional
             Integral variance components with shape ``(K, K)``.
         """
         if not isinstance(self.gprior.kernel, RBF):
@@ -463,6 +463,12 @@ class HeteroskedasticSGPRPosterior:
                     if separate_K:
                         J[j, k] = J_jk
                         J[k, j] = J_jk
+
+        # Correct for numerical error
+        if compute_var:
+            F_var = jnp.maximum(F_var, jnp.finfo(jnp.float64).eps)
+        else:
+            F_var = None
 
         if separate_K:
             return F, F_var, I, J
