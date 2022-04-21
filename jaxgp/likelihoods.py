@@ -242,12 +242,6 @@ class HeteroskedasticGaussianVBMC(Likelihood):
         ``user_provided_add = False`` then this does nothing.
     rectified_linear_output_dependent_add : bool, defaults to False
         Whether to add rectified linear output-dependent noise.
-
-    user_provided: bool, default=False
-        Whether the noise variance vector is provided by user. If True, the
-        noise vector need to be provided as ``sigma_sq``. ``sigma_sq``'s shape
-        can be (N,), (N, 1) or (N, latent_dim). If False, ``num_data`` need to
-        be initialized and the noise params are set to ones as default.
     """
 
     constant_add: bool = False
