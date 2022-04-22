@@ -96,8 +96,7 @@ class RBF(Stationary):
     distance: Distance = L2Distance()
 
     def __call__(self, x: Array, y: Array, params: Dict) -> Array:
-        # TODO: jit doesn't allow the following, better ways to check?
-        # assert jnp.array(self.active_dims).max() <= x.shape[-1]
+        assert max(self.active_dims) < x.shape[-1]
         for key, _ in self.params.items():
             assert self.params[key].shape == params[key].shape
         x = self.slice_input(x) / params["lengthscale"]

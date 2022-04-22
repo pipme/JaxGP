@@ -81,6 +81,9 @@ class Gaussian(Likelihood):
     def transforms(self) -> Dict:
         return {"noise": Config.positive_bijector}
 
+    def compute(self, params: Dict, *args):
+        return params["noise"]
+
     def variational_expectation(
         self, params: Dict, Fmu: Array, Fvar: Array, Y: Array
     ):
@@ -152,7 +155,9 @@ class FixedHeteroskedasticGaussian(Likelihood):
     def transforms(self) -> Dict:
         return {}
 
-    def compute(self, params: Dict, sigma_sq: Array):
+    def compute(self, params: Dict, sigma_sq: Optional[Array] = None):
+        if sigma_sq is None:
+            return jnp.array([Config.jitter])
         return sigma_sq.squeeze()
 
     def variational_expectation(
