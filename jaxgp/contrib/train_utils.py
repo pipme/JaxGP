@@ -33,11 +33,15 @@ def deep_update_no_new_key(
 
 def train_model(
     model: Union[SGPR, HeteroskedasticSGPR],
+    init_params: Optional[Dict] = None,
     fixed_params: Optional[Dict] = None,
 ) -> NamedTuple:
     params, constrain_trans, unconstrain_trans = jgp.initialise(model)
     raw_params = unconstrain_trans(params)
     neg_elbo = model.build_elbo(sign=-1.0)
+
+    if init_params is not None:
+        params = deep_update(params, init_params)
 
     if fixed_params is not None:
         # hack to update, better ways?
