@@ -6,7 +6,7 @@ import jaxopt
 from pydantic.utils import deep_update
 
 import jaxgp as jgp
-from jaxgp import SGPR, HeteroskedasticSGPR
+from jaxgp import GPR, SGPR, HeteroskedasticSGPR
 
 KeyType = TypeVar("KeyType")
 
@@ -32,13 +32,16 @@ def deep_update_no_new_key(
 
 
 def train_model(
-    model: Union[SGPR, HeteroskedasticSGPR],
+    model: Union[GPR, SGPR, HeteroskedasticSGPR],
     init_params: Optional[Dict] = None,
     fixed_params: Optional[Dict] = None,
 ) -> NamedTuple:
     params, constrain_trans, unconstrain_trans = jgp.initialise(model)
     raw_params = unconstrain_trans(params)
-    neg_elbo = model.build_elbo(sign=-1.0)
+    if isinstance(model, GPR):
+        neg_elbo = model.build_mll(sign=-1.0)
+    else:
+        neg_elbo = model.build_elbo(sign=-1.0)
 
     if init_params is not None:
         params = deep_update(params, init_params)

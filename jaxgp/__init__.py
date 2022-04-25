@@ -8,6 +8,7 @@ config.update("jax_enable_x64", True)
 from jaxgp import gps, kernels, likelihoods, means
 from jaxgp.config import Config
 from jaxgp.datasets import Dataset
+from jaxgp.gpr import GPR
 from jaxgp.gps import GPrior
 from jaxgp.parameters import copy_dict_structure, initialise
 from jaxgp.sgpr import SGPR

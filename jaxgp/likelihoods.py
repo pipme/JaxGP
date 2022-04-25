@@ -157,7 +157,7 @@ class FixedHeteroskedasticGaussian(Likelihood):
 
     def compute(self, params: Dict, sigma_sq: Optional[Array] = None):
         if sigma_sq is None:
-            return jnp.array([Config.jitter])
+            return jnp.array([Config.jitter**2])
         return sigma_sq.squeeze()
 
     def variational_expectation(
