@@ -158,7 +158,7 @@ class HeteroskedasticSGPRPosterior:
         Kus = cross_covariance(self.gprior.kernel, iv, X_new, params["kernel"])
         sigma_sq = self.likelihood.compute(
             params["likelihood"], self.sigma_sq_user
-        )
+        )  # [N,] or [1,]
         sigma = jnp.sqrt(sigma_sq)
         L = linalg.cholesky(Kuu, lower=True)
         A = linalg.solve_triangular(L, Kuf, lower=True) / sigma[None, :]

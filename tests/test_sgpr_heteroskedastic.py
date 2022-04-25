@@ -28,7 +28,7 @@ def test_heteroskedastic_sgpr_qu():
     y = np.sin(X @ np.array([[-1.4], [0.5]])) + 0.5 * rng.randn(len(X), 1)
 
     train_data = jgp.Dataset(X=X, Y=y)
-    kernel = jgp.kernels.RBF(active_dims=[0, 1])
+    kernel = jgp.kernels.RBF(active_dims=(0, 1))
     model = HeteroskedasticSGPR(
         train_data=train_data,
         gprior=jgp.GPrior(kernel=kernel),

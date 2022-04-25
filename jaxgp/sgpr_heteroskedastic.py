@@ -70,8 +70,7 @@ class HeteroskedasticSGPR:
         iv = params["inducing_points"]
         sigma_sq = self.likelihood.compute(
             params["likelihood"], self.sigma_sq_user
-        )  # [N]
-
+        )  # [N,] or [1,]
         Kuf = cross_covariance(self.gprior.kernel, iv, X, params["kernel"])
         Kuu = cross_covariance(self.gprior.kernel, iv, iv, params["kernel"])
         Kuu = default_jitter(Kuu)
@@ -96,8 +95,10 @@ class HeteroskedasticSGPR:
         kdiag = gram(self.gprior.kernel, X, params["kernel"], full_cov=False)
         sigma_sq = self.likelihood.compute(
             params["likelihood"], self.sigma_sq_user
-        )  # [N]
-
+        )  # [N,] or [1,]
+        if sigma_sq.size == 1:
+            # important for correct computation with Gaussian likelihood
+            sigma_sq = jnp.tile(sigma_sq, X.shape[0])
         # tr(KD^{-1})
         trace_k = jnp.sum(kdiag / sigma_sq)
         # tr(QD^{-1})
@@ -121,8 +122,7 @@ class HeteroskedasticSGPR:
         err = Y - self.gprior.mean(params)(X)
         sigma_sq = self.likelihood.compute(
             params["likelihood"], self.sigma_sq_user
-        )  # [N]
-
+        )  # [N,] or [1,]
         sigma = jnp.sqrt(sigma_sq)
 
         Aerr = (A / sigma[None, :]) @ err
