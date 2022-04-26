@@ -29,9 +29,10 @@ def test_heteroskedastic_sgpr_qu():
 
     train_data = jgp.Dataset(X=X, Y=y)
     kernel = jgp.kernels.RBF(active_dims=(0, 1))
+    mean = jgp.means.Quadratic(input_dim=X.shape[-1])
     model = HeteroskedasticSGPR(
         train_data=train_data,
-        gprior=jgp.GPrior(kernel=kernel),
+        gprior=jgp.GPrior(kernel=kernel, mean_function=mean),
         likelihood=jgp.likelihoods.FixedHeteroskedasticGaussian(),
         sigma_sq_user=jnp.ones(X.shape[0]),
         inducing_points=Z,

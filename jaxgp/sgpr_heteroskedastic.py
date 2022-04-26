@@ -162,6 +162,7 @@ class HeteroskedasticSGPR:
             self.gprior.kernel, params["inducing_points"], params["kernel"]
         )
         Kuu = default_jitter(Kuu)
+        L = linalg.cholesky(Kuu, lower=True)
         sigma_sq = self.likelihood.compute(
             params["likelihood"], self.sigma_sq_user
         )  # [N]
@@ -171,7 +172,12 @@ class HeteroskedasticSGPR:
         sig_sqrt_kuu = linalg.solve_triangular(sig_sqrt, Kuu, lower=True)
 
         cov = sig_sqrt_kuu.T @ sig_sqrt_kuu
-        err = Y - self.gprior.mean(params)(X)
+        mu_u = self.gprior.mean(params)(params["inducing_points"])
+        err = (
+            Y
+            - self.gprior.mean(params)(X)
+            + Kuf.T @ linalg.cho_solve((L, True), mu_u)
+        )
         mu = sig_sqrt_kuu.T @ linalg.solve_triangular(
             sig_sqrt, Kuf / sigma_sq[None, :] @ err, lower=True
         )

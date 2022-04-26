@@ -168,7 +168,15 @@ class HeteroskedasticSGPRPosterior:
         c = linalg.solve_triangular(LB, Aerr, lower=True)
         tmp1 = linalg.solve_triangular(L, Kus, lower=True)
         tmp2 = linalg.solve_triangular(LB, tmp1, lower=True)
-        mean = tmp2.T @ c  # [N, num_latent_gps]
+        mean1 = tmp2.T @ c  # [N, num_latent_gps]
+        mu_u = self.gprior.mean(params)(iv)
+        mean2 = linalg.solve_triangular(L, mu_u, lower=True)
+        mean2 = linalg.cho_solve((LB, True), A @ A.T @ mean2)
+        mean2 = linalg.solve_triangular(L, mean2, lower=True, trans=1)
+        mean2 = Kus.T @ mean2
+        mean3 = -Kus.T @ linalg.cho_solve((L, True), mu_u)
+        mean = mean1 + mean2 + mean3 + self.gprior.mean(params)(X_new)
+
         if full_cov:
             var = (
                 cross_covariance(
