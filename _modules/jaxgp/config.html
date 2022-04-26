@@ -353,7 +353,10 @@
     <span class="n">triangular_bijector</span><span class="p">:</span> <span class="n">tfp</span><span class="o">.</span><span class="n">bijectors</span><span class="o">.</span><span class="n">Bijector</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">tfb</span><span class="o">.</span><span class="n">FillTriangular</span><span class="p">()</span>
     <span class="p">)</span>  <span class="c1"># TODO: FillScaleTriL might be better?</span>
-    <span class="n">positive_minimum</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">float64</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+    <span class="n">positive_minimum</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">float64</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">strict_positive_bijector</span><span class="p">:</span> <span class="n">tfp</span><span class="o">.</span><span class="n">bijectors</span><span class="o">.</span><span class="n">Bijector</span> <span class="o">=</span> <span class="n">tfb</span><span class="o">.</span><span class="n">Shift</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1e-12</span><span class="p">))(</span>
+        <span class="n">tfb</span><span class="o">.</span><span class="n">Softplus</span><span class="p">()</span>
+    <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="default_jitter"><a class="viewcode-back" href="../../api/summary/jaxgp.config.default_jitter.html#jaxgp.config.default_jitter">[docs]</a><span class="k">def</span> <span class="nf">default_jitter</span><span class="p">(</span><span class="n">K</span><span class="p">:</span> <span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>

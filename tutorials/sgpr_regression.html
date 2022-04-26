@@ -395,6 +395,15 @@
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/Users/lichengk/.miniforge3/envs/py39_forge/lib/python3.9/site-packages/jax/_src/lib/__init__.py:33: UserWarning: JAX on Mac ARM machines is experimental and minimally tested. Please see https://github.com/google/jax/issues/5501 in the event of problems.
+  warnings.warn(&quot;JAX on Mac ARM machines is experimental and minimally tested. &quot;
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING:absl:No GPU/TPU found, falling back to CPU. (Set TF_CPP_MIN_LOG_LEVEL=0 and rerun for more info.)
+</pre></div>
+</div>
+</div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -437,7 +446,7 @@
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">train_data</span> <span class="o">=</span> <span class="n">jgp</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
-<span class="n">kernel</span> <span class="o">=</span> <span class="n">jgp</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">RBF</span><span class="p">(</span><span class="n">active_dims</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+<span class="n">kernel</span> <span class="o">=</span> <span class="n">jgp</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">RBF</span><span class="p">(</span><span class="n">active_dims</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])))</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">SGPR</span><span class="p">(</span>
     <span class="n">train_data</span><span class="o">=</span><span class="n">train_data</span><span class="p">,</span>
     <span class="n">gprior</span><span class="o">=</span><span class="n">jgp</span><span class="o">.</span><span class="n">GPrior</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">),</span>
@@ -450,6 +459,11 @@
 <span class="n">params_container</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
 <span class="n">params_container</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">params_container</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">params_container</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;inducing_points&#39;: (50, 1), &#39;kernel&#39;: {&#39;lengthscale&#39;: (1,), &#39;outputscale&#39;: (1,)}, &#39;likelihood&#39;: {&#39;noise&#39;: (1,)}, &#39;mean_function&#39;: {}}
 </pre></div>
 </div>
 </div>
@@ -466,6 +480,19 @@
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;After optimization negative elbo = &quot;</span><span class="p">,</span> <span class="n">neg_elbo</span><span class="p">(</span><span class="n">soln</span><span class="o">.</span><span class="n">params</span><span class="p">))</span>
 
 <span class="n">posterior</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">posterior</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Initial negative elbo =  59.02331024055086
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully.
+         Current function value: 23.966750
+         Iterations: 93
+         Function evaluations: 101
+         Gradient evaluations: 101
+After optimization negative elbo =  23.96674999810353
 </pre></div>
 </div>
 </div>
@@ -489,6 +516,12 @@
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.collections.PolyCollection at 0x290157df0&gt;
+</pre></div>
+</div>
+<img alt="../_images/sgpr_regression_6_1.png" src="../_images/sgpr_regression_6_1.png" />
+</div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -507,6 +540,11 @@
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">final_params</span><span class="p">[</span><span class="s2">&quot;likelihood&quot;</span><span class="p">][</span><span class="s2">&quot;noise&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[0.07428594]
 </pre></div>
 </div>
 </div>

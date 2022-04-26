@@ -420,8 +420,7 @@
     <span class="n">distance</span><span class="p">:</span> <span class="n">Distance</span> <span class="o">=</span> <span class="n">L2Distance</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Array</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">Array</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
-        <span class="c1"># TODO: jit doesn&#39;t allow the following, better ways to check?</span>
-        <span class="c1"># assert jnp.array(self.active_dims).max() &lt;= x.shape[-1]</span>
+        <span class="k">assert</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_dims</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">slice_input</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;lengthscale&quot;</span><span class="p">]</span>
@@ -443,6 +442,7 @@
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;outputscale&quot;</span><span class="p">:</span> <span class="n">Config</span><span class="o">.</span><span class="n">positive_bijector</span><span class="p">,</span>
             <span class="s2">&quot;lengthscale&quot;</span><span class="p">:</span> <span class="n">Config</span><span class="o">.</span><span class="n">positive_bijector</span><span class="p">,</span>
+            <span class="c1"># &quot;lengthscale&quot;: Config.strict_positive_bijector,</span>
         <span class="p">}</span></div>
 
 
