@@ -151,3 +151,4 @@ docs/api/summary
 _build/
 examples/
 .VSCode*
+tmp

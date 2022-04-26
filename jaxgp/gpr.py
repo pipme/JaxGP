@@ -73,6 +73,7 @@ class GPR:
 
         """
         X, Y = self.train_data.X, self.train_data.Y
+        N = X.shape[0]
         constrain_trans, unconstrain_trans = build_transforms(self.transforms)
 
         def mll(
@@ -94,14 +95,18 @@ class GPR:
                 )
             covariance = default_jitter(covariance)
             L = linalg.cholesky(covariance, lower=True)
-            random_variable = tfd.MultivariateNormalTriL(mu, L)
+            det_sqrt = jnp.prod(jnp.diag(L))
 
+            mll_value = (
+                -0.5
+                * jnp.sum((Y - mu) * linalg.cho_solve((L, True), Y - mu), 0)
+                - jnp.log(det_sqrt)
+                - N / 2 * jnp.log(2 * jnp.pi)
+            )  # [N, L]
+            mll_value = mll_value.mean()
             # TODO: missing priors for params
             # log_prior_density = evaluate_priors(params, priors)
-            return sign * (
-                random_variable.log_prob(Y.squeeze()).mean()
-                # + log_prior_density
-            )
+            return sign * mll_value
 
         return mll
 
