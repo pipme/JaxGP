@@ -35,6 +35,7 @@ def train_model(
     model: Union[GPR, SGPR, HeteroskedasticSGPR],
     init_params: Optional[Dict] = None,
     fixed_params: Optional[Dict] = None,
+    **kwargs
 ) -> NamedTuple:
     params, constrain_trans, unconstrain_trans = jgp.initialise(model)
     raw_params = unconstrain_trans(params)
@@ -64,5 +65,8 @@ def train_model(
     solver = jaxopt.ScipyMinimize(
         fun=obj_fun, jit=True, options={"disp": True}
     )
-    soln = solver.run(raw_params)
+    if "bounds" not in kwargs:
+        soln = solver._run(raw_params, bounds=None, **kwargs)
+    else:
+        soln = solver._run(raw_params, **kwargs)
     return soln
