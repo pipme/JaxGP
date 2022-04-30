@@ -184,7 +184,11 @@ class HeteroskedasticSGPR:
 
         return mu, cov
 
-    def posterior(self):
+    def posterior(self, params: Optional[Dict] = None):
         return HeteroskedasticSGPRPosterior(
-            self.train_data, self.gprior, self.likelihood, self.sigma_sq_user
+            self.train_data,
+            self.gprior,
+            self.likelihood,
+            self.sigma_sq_user,
+            params_cache=params,
         )

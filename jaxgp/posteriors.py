@@ -1,6 +1,9 @@
 from abc import abstractmethod
-from typing import Callable, Dict, Optional, Tuple
+from collections import namedtuple
+from functools import partial
+from typing import Callable, Dict, NamedTuple, Optional, Tuple
 
+import jax
 import jax.numpy as jnp
 import jax.scipy.linalg as linalg
 import numpy as np
@@ -138,12 +141,48 @@ class HeteroskedasticSGPRPosterior:
         gprior: GPrior,
         likelihood: Likelihood,
         sigma_sq_user: Array,
+        params_cache: Optional[Dict] = None,
     ) -> None:
         self.train_data = train_data
         self.gprior = gprior
         self.likelihood = likelihood
         self.num_latent_gps = train_data.Y.shape[-1]
         self.sigma_sq_user = sigma_sq_user
+        self.cache = None
+        self.params_cache = params_cache
+        if params_cache is not None:
+            self.cache = self._precompute(params_cache)
+
+    def _precompute(self, params: Dict) -> NamedTuple:
+        X, Y = self.train_data.X, self.train_data.Y
+        iv = params["inducing_points"]
+        num_inducing = iv.shape[0]
+        err = Y - self.gprior.mean(params)(X)
+        Kuf = cross_covariance(self.gprior.kernel, iv, X, params["kernel"])
+        Kuu = cross_covariance(self.gprior.kernel, iv, iv, params["kernel"])
+        Kuu = default_jitter(Kuu)
+        sigma_sq = self.likelihood.compute(
+            params["likelihood"], self.sigma_sq_user
+        )  # [N,] or [1,]
+        sigma = jnp.sqrt(sigma_sq)
+        L = linalg.cholesky(Kuu, lower=True)
+        A = linalg.solve_triangular(L, Kuf, lower=True) / sigma[None, :]
+        AAT = A @ A.T
+        B = AAT + jnp.eye(num_inducing)
+        LB = linalg.cholesky(B, lower=True)
+        Aerr = (A / sigma[None, :]) @ err
+        c = linalg.solve_triangular(LB, Aerr, lower=True)
+
+        mu_u = self.gprior.mean(params)(iv)
+        mean2 = linalg.solve_triangular(L, mu_u, lower=True)
+        mean2 = linalg.cho_solve((LB, True), AAT @ mean2)
+        mean2 = linalg.solve_triangular(L, mean2, lower=True, trans=1)
+        Lmu_u = linalg.cho_solve((L, True), mu_u)
+        cache = namedtuple(
+            "cache",
+            ["A", "B", "LB", "AAT", "L", "Aerr", "c", "mean2", "Lmu_u"],
+        )
+        return cache(A, B, LB, AAT, L, Aerr, c, mean2, Lmu_u)
 
     def predict_f(self, X_new: Array, params: Dict, full_cov: bool = False):
         if X_new.ndim == 1:
@@ -162,7 +201,8 @@ class HeteroskedasticSGPRPosterior:
         sigma = jnp.sqrt(sigma_sq)
         L = linalg.cholesky(Kuu, lower=True)
         A = linalg.solve_triangular(L, Kuf, lower=True) / sigma[None, :]
-        B = A @ A.T + jnp.eye(num_inducing)
+        AAT = A @ A.T
+        B = AAT + jnp.eye(num_inducing)
         LB = linalg.cholesky(B, lower=True)
         Aerr = (A / sigma[None, :]) @ err
         c = linalg.solve_triangular(LB, Aerr, lower=True)
@@ -171,10 +211,54 @@ class HeteroskedasticSGPRPosterior:
         mean1 = tmp2.T @ c  # [N, num_latent_gps]
         mu_u = self.gprior.mean(params)(iv)
         mean2 = linalg.solve_triangular(L, mu_u, lower=True)
-        mean2 = linalg.cho_solve((LB, True), A @ A.T @ mean2)
+        mean2 = linalg.cho_solve((LB, True), AAT @ mean2)
         mean2 = linalg.solve_triangular(L, mean2, lower=True, trans=1)
         mean2 = Kus.T @ mean2
         mean3 = -Kus.T @ linalg.cho_solve((L, True), mu_u)
+        mean = mean1 + mean2 + mean3 + self.gprior.mean(params)(X_new)
+
+        if full_cov:
+            var = (
+                cross_covariance(
+                    self.gprior.kernel, X_new, X_new, params["kernel"]
+                )
+                + tmp2.T @ tmp2
+                - tmp1.T @ tmp1
+            )
+            var = jnp.tile(
+                var[None, ...], [self.num_latent_gps, 1, 1]
+            )  # [num_latent_gps, N, N]
+        else:
+            var = (
+                gram(
+                    self.gprior.kernel, X_new, params["kernel"], full_cov=False
+                )
+                + jnp.sum(tmp2**2, 0)
+                - jnp.sum(tmp1**2, 0)
+            )
+            var = jnp.tile(
+                var[None, ...], [self.num_latent_gps, 1]
+            )  # [num_latent_gps, N]
+        return mean, var
+
+    @partial(jax.jit, static_argnums=[0, 2])
+    def predict_f_with_precomputed(self, X_new: Array, full_cov: bool = False):
+        params = self.params_cache
+        if X_new.ndim == 1:
+            X_new = X_new[..., None]
+        X, Y = self.train_data.X, self.train_data.Y
+        iv = params["inducing_points"]
+
+        Kus = cross_covariance(self.gprior.kernel, iv, X_new, params["kernel"])
+        L = self.cache.L
+        LB = self.cache.LB
+        c = self.cache.c
+        tmp1 = linalg.solve_triangular(L, Kus, lower=True)
+        tmp2 = linalg.solve_triangular(LB, tmp1, lower=True)
+        mean1 = tmp2.T @ c  # [N, num_latent_gps]
+        mean2 = self.cache.mean2
+        mean2 = Kus.T @ mean2
+        mean3 = -Kus.T @ self.cache.Lmu_u
         mean = mean1 + mean2 + mean3 + self.gprior.mean(params)(X_new)
 
         if full_cov:
