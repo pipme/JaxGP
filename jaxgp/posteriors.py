@@ -378,7 +378,7 @@ class HeteroskedasticSGPRPosterior:
         err = Y - self.gprior.mean(params)(X)  # [N, D]
         Aerr = (A / sigma_obs[None, :]) @ err
         tmp = linalg.cho_solve((LB, True), Aerr)
-        tmp = linalg.solve_triangular(L, tmp, lower=True)  # [N_iv, 1]
+        tmp = linalg.solve_triangular(L.T, tmp)  # [N_iv, 1]
         F = w @ tmp + m0
 
         if quadratic_mean_fun:
@@ -514,7 +514,7 @@ class HeteroskedasticSGPRPosterior:
         err = Y - self.gprior.mean(params)(X)  # [N, D]
         Aerr = (A / sigma_obs[None, :]) @ err
         tmp = linalg.cho_solve((LB, True), Aerr)
-        tmp = linalg.solve_triangular(L, tmp, lower=True)  # [N_iv, 1]
+        tmp = linalg.solve_triangular(L.T, tmp)  # [N_iv, 1]
         I = w @ tmp + m0  # [K, 1]
         I = I.squeeze()
 
@@ -550,18 +550,16 @@ class HeteroskedasticSGPRPosterior:
 
                 # Off-diagonal elements are symmetric (count twice)
                 if j == k:
-                    F_var += (
-                        weights[k] ** 2
-                        * J_jk
-                        * jnp.maximum(jnp.finfo(jnp.float64).eps, J_jk)
+                    F_var += weights[k] ** 2 * jnp.maximum(
+                        jnp.finfo(jnp.float64).eps, J_jk
                     )
                     if separate_K:
-                        J.at[k, k].set(J_jk)
+                        J = J.at[k, k].set(J_jk)
                 else:
                     F_var += 2 * weights[j] * weights[k] * J_jk
                     if separate_K:
-                        J.at[j, k].set(J_jk)
-                        J.at[k, j].set(J_jk)
+                        J = J.at[j, k].set(J_jk)
+                        J = J.at[k, j].set(J_jk)
 
         # Correct for numerical error
         if compute_var:
