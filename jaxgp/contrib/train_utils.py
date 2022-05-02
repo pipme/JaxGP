@@ -35,6 +35,7 @@ def train_model(
     model: Union[GPR, SGPR, HeteroskedasticSGPR],
     init_params: Optional[Dict] = None,
     fixed_params: Optional[Dict] = None,
+    tol: Optional[float] = None,
     **kwargs
 ) -> NamedTuple:
     params, constrain_trans, unconstrain_trans = jgp.initialise(model)
@@ -63,7 +64,7 @@ def train_model(
 
     print("Initial negative elbo = ", obj_fun(raw_params))
     solver = jaxopt.ScipyMinimize(
-        fun=obj_fun, jit=True, options={"disp": True}
+        fun=obj_fun, jit=True, tol=tol, options={"disp": True}
     )
     if "bounds" not in kwargs:
         soln = solver._run(raw_params, bounds=None, **kwargs)

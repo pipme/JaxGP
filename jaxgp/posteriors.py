@@ -695,6 +695,11 @@ class HeteroskedasticSGPRPosterior:
         F = jnp.sum(weights * I)
 
         J = jnp.zeros((K, K))
+        mu = jax.lax.stop_gradient(mu)
+        sigma = jax.lax.stop_gradient(sigma)
+        weights = jax.lax.stop_gradient(weights)
+        w = jax.lax.stop_gradient(w)
+        # J = [[None for i in range(K)] for j in range(K)]
         F_var = 0.0
         for k in range(K):
             for j in range(k + 1):
@@ -721,11 +726,14 @@ class HeteroskedasticSGPRPosterior:
                     )
                     if separate_K:
                         J = J.at[k, k].set(J_jk)
+                        # J[k][k] = J_jk
                 else:
                     F_var += 2 * weights[j] * weights[k] * J_jk
                     if separate_K:
                         J = J.at[j, k].set(J_jk)
                         J = J.at[k, j].set(J_jk)
+                        # J[j][k] = J_jk
+                        # J[k][j] = J_jk
 
         # Correct for numerical error
         if compute_var:

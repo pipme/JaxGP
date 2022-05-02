@@ -2,11 +2,13 @@
 # mypy: ignore-errors
 from dataclasses import dataclass
 
+import jax
 import jax.numpy as jnp
 import jaxopt
 import numpy as np
 
 import jaxgp as jgp
+from jaxgp.contrib.train_utils import train_model
 from jaxgp.gpr import GPR
 from jaxgp.posteriors import GPRPosterior
 
@@ -89,3 +91,43 @@ def test_GPRPosterior_heteroskedastic():
         pred_mean[: len(X) // 2], y[: len(X) // 2], atol=1e-4
     )
     assert pred_var.sum() > 0
+
+
+def test_HeteroskedasticSGPRPosterior_quad_mixture():
+    rng = Datum().rng
+    D = 2
+    X = rng.randn(100, D)
+    y = np.sin(np.sum(X**2, 1)) + rng.randn(X.shape[0]) * 0.1
+
+    train_data = jgp.Dataset(X, y)
+    mean = jgp.means.Quadratic(input_dim=D)
+    kernel = jgp.kernels.RBF(active_dims=tuple(range(D)))
+    likelihood = jgp.likelihoods.HeteroskedasticGaussianVBMC(constant_add=True)
+    Z = X.copy()
+    model = jgp.HeteroskedasticSGPR(
+        train_data=train_data,
+        gprior=jgp.GPrior(kernel=kernel, mean_function=mean),
+        likelihood=likelihood,
+        inducing_points=Z,
+    )
+    _, constrain_trans, unconstrain_trans = jgp.initialise(model)
+
+    # soln = train_model(model)
+    # final_params = constrain_trans(soln.params)
+    final_params = model.params
+    model.post_cache = model.posterior(final_params)
+
+    K = 50
+    mu = jnp.array(rng.randn(K, D))
+    sigma = jnp.abs(rng.randn(K, D)) + 1e-3
+    weights = jnp.ones(K) / K
+    from functools import partial
+
+    @jax.jit
+    @partial(jax.value_and_grad)
+    def f(mu, sigma, weights):
+        return model.post_cache.quad_mixture(mu, sigma, weights, True, True)[0]
+
+    res = f(mu, sigma, weights)
+    print(res)
+    return
