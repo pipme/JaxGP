@@ -36,6 +36,7 @@ def train_model(
     init_params: Optional[Dict] = None,
     fixed_params: Optional[Dict] = None,
     tol: Optional[float] = None,
+    options: Optional[float] = None,
     **kwargs
 ) -> NamedTuple:
     params, constrain_trans, unconstrain_trans = jgp.initialise(model)
@@ -47,6 +48,7 @@ def train_model(
 
     if init_params is not None:
         params = deep_update(params, init_params)
+        raw_params = unconstrain_trans(params)
 
     if fixed_params is not None:
         # hack to update, better ways?
@@ -64,7 +66,7 @@ def train_model(
 
     print("Initial negative elbo = ", obj_fun(raw_params))
     solver = jaxopt.ScipyMinimize(
-        fun=obj_fun, jit=True, tol=tol, options={"disp": True}
+        fun=obj_fun, jit=True, tol=tol, options=options
     )
     if "bounds" not in kwargs:
         soln = solver._run(raw_params, bounds=None, **kwargs)
