@@ -121,7 +121,10 @@ def test_HeteroskedasticSGPRPosterior_quad_mixture():
     mu = jnp.array(rng.randn(K, D))
     sigma = jnp.abs(rng.randn(K, D)) + 1e-3
     weights = jnp.ones(K) / K
+    import time
     from functools import partial
+
+    start = time.process_time()
 
     @jax.jit
     @partial(jax.value_and_grad)
@@ -129,5 +132,5 @@ def test_HeteroskedasticSGPRPosterior_quad_mixture():
         return model.post_cache.quad_mixture(mu, sigma, weights, True, True)[0]
 
     res = f(mu, sigma, weights)
-    print(res)
+    print("time: ", time.process_time() - start)
     return

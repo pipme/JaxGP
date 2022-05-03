@@ -694,46 +694,28 @@ class HeteroskedasticSGPRPosterior:
             I += nu_k
         F = jnp.sum(weights * I)
 
-        J = jnp.zeros((K, K))
         mu = jax.lax.stop_gradient(mu)
         sigma = jax.lax.stop_gradient(sigma)
         weights = jax.lax.stop_gradient(weights)
         w = jax.lax.stop_gradient(w)
-        # J = [[None for i in range(K)] for j in range(K)]
         F_var = 0.0
-        for k in range(K):
-            for j in range(k + 1):
-                tau_jk = jnp.sqrt(
-                    sigma[j, :] ** 2 + sigma[k, :] ** 2 + ell**2
-                )  # [D]
-                nf_jk = sf2 * jnp.prod(ell) / jnp.prod(tau_jk)
-                delta_jk = (mu[j, :] - mu[k, :]) / tau_jk
-                J_jk = nf_jk * jnp.exp(-0.5 * jnp.sum(delta_jk**2))
 
-                # K_tilde^{-1} = L^-T B^-1 L^-1
-                invKwk_1 = linalg.cho_solve((L, True), w[k])
-                tmp = linalg.solve_triangular(L, w[k], lower=True)
-                tmp = linalg.cho_solve((LB, True), tmp)
-                invKwk_2 = linalg.solve_triangular(L.T, tmp)
-                invKwk = invKwk_1 - invKwk_2  # [N_iv, 1]
-                invKwk = invKwk.squeeze()
-                J_jk -= jnp.dot(w[j], invKwk)
+        tau = jnp.sqrt(
+            sigma[:, None, :] ** 2 + sigma[None, ...] ** 2 + ell**2
+        )  # [K, K, D]
+        nf = sf2 * jnp.prod(ell) / jnp.prod(tau, -1)  # [K, K]
+        delta = (mu[:, None, :] - mu[None, ...]) / tau  # [K, K, D]
+        J = nf * jnp.exp(-0.5 * jnp.sum(delta**2, -1))  # [K, K]
 
-                # Off-diagonal elements are symmetric (count twice)
-                if j == k:
-                    F_var += weights[k] ** 2 * jnp.maximum(
-                        jnp.finfo(jnp.float64).eps, J_jk
-                    )
-                    if separate_K:
-                        J = J.at[k, k].set(J_jk)
-                        # J[k][k] = J_jk
-                else:
-                    F_var += 2 * weights[j] * weights[k] * J_jk
-                    if separate_K:
-                        J = J.at[j, k].set(J_jk)
-                        J = J.at[k, j].set(J_jk)
-                        # J[j][k] = J_jk
-                        # J[k][j] = J_jk
+        invKwk_1 = linalg.cho_solve((L, True), w.T)  # [N_iv, K]
+        tmp = linalg.solve_triangular(L, w.T, lower=True)  # [N_iv, K]
+        tmp = linalg.cho_solve((LB, True), tmp)  # [N_iv, K]
+        invKwk_2 = linalg.solve_triangular(L.T, tmp)  # [N_iv, K]
+        invKwk = invKwk_1 - invKwk_2  # [N_iv, K]
+        J -= w @ invKwk  # [K, K]
+
+        J = jnp.maximum(jnp.finfo(jnp.float64).eps, J)
+        F_var = jnp.sum(weights[:, None] * weights[None, :] * J)
 
         # Correct for numerical error
         if compute_var:
