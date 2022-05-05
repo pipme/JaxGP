@@ -1,10 +1,13 @@
 import copy
-from typing import Dict, Union
+from typing import Any, Dict, TypeVar, Union
 
 import jax
+import numpy as np
 
 from .abstractions import InducingPoints
 from .helpers import Array
+
+KeyType = TypeVar("KeyType")
 
 
 def concat_dictionaries(*args: Dict) -> Dict:
@@ -40,3 +43,53 @@ def pytree_shape_info(params: Dict) -> None:
     params_container = copy.deepcopy(params)
     params_container = jax.tree_map(lambda v: v.shape, params_container)
     print(params_container)
+
+
+def copy_dict_structure(params: Dict) -> Dict:
+    # Copy dictionary structure
+    container = copy.deepcopy(params)
+    # Set all values to None
+    container = jax.tree_map(lambda _: None, container)
+    return container
+
+
+def deep_update(
+    mapping: Dict[KeyType, Any], *updating_mappings: Dict[KeyType, Any]
+) -> Dict[KeyType, Any]:
+    updated_mapping = mapping.copy()
+    for updating_mapping in updating_mappings:
+        for k, v in updating_mapping.items():
+            if (
+                k in updated_mapping
+                and isinstance(updated_mapping[k], dict)
+                and isinstance(v, dict)
+            ):
+                updated_mapping[k] = deep_update(updated_mapping[k], v)
+            else:
+                updated_mapping[k] = v
+    return updated_mapping
+
+
+def deep_update_no_new_key(
+    mapping: Dict[KeyType, Any], *updating_mappings: Dict[KeyType, Any]
+) -> Dict[KeyType, Any]:
+    updated_mapping = mapping.copy()
+    for updating_mapping in updating_mappings:
+        for k, v in updating_mapping.items():
+            if (
+                k in updated_mapping
+                and isinstance(updated_mapping[k], dict)
+                and isinstance(v, dict)
+            ):
+                updated_mapping[k] = deep_update_no_new_key(
+                    updated_mapping[k], v
+                )
+            else:
+                if k in updated_mapping:
+                    updated_mapping[k] = v
+    return updated_mapping
+
+
+def save_params_npy(params: Dict, file_path: str) -> None:
+    params = jax.tree_util.tree_map(lambda v: np.array(v), params)
+    np.save(file_path, params)

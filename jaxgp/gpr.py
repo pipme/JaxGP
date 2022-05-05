@@ -2,7 +2,6 @@ from typing import Dict, Optional
 
 import jax.numpy as jnp
 import jax.scipy.linalg as linalg
-import tensorflow_probability.substrates.jax.distributions as tfd
 
 from .config import default_jitter
 from .datasets import Dataset

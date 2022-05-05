@@ -1,34 +1,12 @@
 import collections.abc
 import copy
-from typing import Any, Dict, NamedTuple, Optional, TypeVar, Union
+from typing import Any, Dict, NamedTuple, Optional, Union
 
 import jaxopt
-from pydantic.utils import deep_update
 
 import jaxgp as jgp
 from jaxgp import GPR, SGPR, HeteroskedasticSGPR
-
-KeyType = TypeVar("KeyType")
-
-
-def deep_update_no_new_key(
-    mapping: Dict[KeyType, Any], *updating_mappings: Dict[KeyType, Any]
-) -> Dict[KeyType, Any]:
-    updated_mapping = mapping.copy()
-    for updating_mapping in updating_mappings:
-        for k, v in updating_mapping.items():
-            if (
-                k in updated_mapping
-                and isinstance(updated_mapping[k], dict)
-                and isinstance(v, dict)
-            ):
-                updated_mapping[k] = deep_update_no_new_key(
-                    updated_mapping[k], v
-                )
-            else:
-                if k in updated_mapping:
-                    updated_mapping[k] = v
-    return updated_mapping
+from jaxgp.utils import deep_update, deep_update_no_new_key
 
 
 def train_model(
@@ -37,9 +15,14 @@ def train_model(
     fixed_params: Optional[Dict] = None,
     tol: Optional[float] = None,
     options: Optional[float] = None,
-    **kwargs
+    transforms_jitted: Optional[tuple[Any, Any]] = None,
+    **kwargs,
 ) -> NamedTuple:
-    params, constrain_trans, unconstrain_trans = jgp.initialise(model)
+    if transforms_jitted is not None:
+        params = model.params
+        constrain_trans, unconstrain_trans = transforms_jitted
+    else:
+        params, constrain_trans, unconstrain_trans = jgp.initialise(model)
     raw_params = unconstrain_trans(params)
     if isinstance(model, GPR):
         neg_elbo = model.build_mll(sign=-1.0)
@@ -63,7 +46,9 @@ def train_model(
 
     else:
         obj_fun = neg_elbo
+    import time
 
+    ts = time.time()
     print("Initial negative elbo = ", obj_fun(raw_params))
     solver = jaxopt.ScipyMinimize(
         fun=obj_fun, jit=True, tol=tol, options=options
@@ -72,4 +57,6 @@ def train_model(
         soln = solver._run(raw_params, bounds=None, **kwargs)
     else:
         soln = solver._run(raw_params, **kwargs)
+    t2 = time.time() - ts
+    print("Time of jaxopt: ", t2)
     return soln
