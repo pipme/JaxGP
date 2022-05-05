@@ -17,7 +17,13 @@ from .likelihoods import (
 )
 from .parameters import build_transforms
 from .posteriors import HeteroskedasticSGPRPosterior
-from .utils import concat_dictionaries, inducingpoint_wrapper
+from .priors import evaluate_priors
+from .utils import (
+    concat_dictionaries,
+    copy_dict_structure,
+    deep_update,
+    inducingpoint_wrapper,
+)
 
 
 class HeteroskedasticSGPR:
@@ -30,7 +36,7 @@ class HeteroskedasticSGPR:
         ],
         inducing_points: InducingPoints,
         sigma_sq_user: Optional[Array] = None,
-        hyp_prior: Optional[GPrior] = None,
+        hyp_prior: Optional[Dict] = None,
     ) -> None:
         self.train_data = train_data
         self.gprior = gprior
@@ -43,7 +49,6 @@ class HeteroskedasticSGPR:
 
         self.inducing_points = inducingpoint_wrapper(inducing_points)
 
-        self.hyp_prior = hyp_prior
         self.num_data = self.train_data.Y.shape[0]
         self.num_latent_gps = self.train_data.Y.shape[1]
         self._params = concat_dictionaries(
@@ -56,6 +61,12 @@ class HeteroskedasticSGPR:
             {"likelihood": self.likelihood.transforms},
             self.inducing_points.transforms,
         )
+
+        if hyp_prior is not None:
+            self.hyp_prior = copy_dict_structure(self._params)
+            self.hyp_prior = deep_update(self.hyp_prior, hyp_prior)
+        else:
+            self.hyp_prior = None
 
     @property
     def params(self) -> Dict:
@@ -148,7 +159,8 @@ class HeteroskedasticSGPR:
             const = -0.5 * num_data * output_dim * jnp.log(2 * jnp.pi)
             logdet = self.logdet_term(params, common)
             quad = self.quad_term(params, common)
-            return sign * (const + logdet + quad)
+            log_prior_density = evaluate_priors(params, self.hyp_prior)
+            return sign * (const + logdet + quad + log_prior_density)
 
         return elbo
 
