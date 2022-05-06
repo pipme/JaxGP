@@ -295,7 +295,7 @@ class HeteroskedasticGaussianVBMC(Likelihood):
             sigma_sq = sigma_sq.squeeze()
             assert sigma_sq.ndim == 1
         if self.constant_add:
-            noise_var = params["noise_add"]
+            noise_var = jnp.array(params["noise_add"])
         else:
             noise_var = jnp.finfo(jnp.float64).eps
 
