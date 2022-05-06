@@ -5,7 +5,7 @@ import jax.numpy as jnp
 import numpy as np
 import tensorflow_probability.substrates.jax.distributions as tfd
 
-from jaxgp.priors import evaluate_priors, log_density
+from jaxgp.priors import TruncatedPrior, evaluate_priors, log_density
 from jaxgp.utils import copy_dict_structure
 
 
@@ -44,3 +44,22 @@ def test_multi_dimensional_priors():
             params["kernel"]["lengthscale"][i]
         )
     assert np.isclose(lpd_1, lpd_2)
+
+
+def test_TruncatedPrior():
+    prior = TruncatedPrior(tfd.Normal(0, 1), lower_bounds=-1, upper_bounds=2)
+    p1 = prior.log_prob(0.0)
+    p2 = tfd.TruncatedNormal(0, 1, -1, 2).log_prob(0.0)
+    assert p1 == p2
+
+    prior = TruncatedPrior(
+        tfd.Normal([0, 1], [1, 2]), lower_bounds=[-1, -2], upper_bounds=[2, 3]
+    )
+    p1 = prior.log_prob([0.0, 1.0])
+    p2 = jnp.array(
+        [
+            tfd.TruncatedNormal(0, 1, -1, 2).log_prob(0.0),
+            tfd.TruncatedNormal(1, 2, -2, 3).log_prob(1.0),
+        ]
+    )
+    assert np.allclose(p1, p2)
