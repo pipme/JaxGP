@@ -31,6 +31,9 @@ def build_transforms(transforms: Dict) -> Tuple[Callable, Callable]:
 
     def constrain_trans(params: Dict) -> Dict:
         params = sort_dict(params)
+        transforms_ = {}
+        for k in params.keys():
+            transforms_[k] = transforms[k]
 
         def transform_param(param, transform):  # type: ignore
             if isinstance(transform, tfp.bijectors.Bijector):
@@ -38,10 +41,15 @@ def build_transforms(transforms: Dict) -> Tuple[Callable, Callable]:
             else:
                 return param
 
-        return jax.tree_util.tree_multimap(transform_param, params, transforms)
+        return jax.tree_util.tree_multimap(
+            transform_param, params, transforms_
+        )
 
     def unconstrain_trans(params: Dict) -> Dict:
         params = sort_dict(params)
+        transforms_ = {}
+        for k in params.keys():
+            transforms_[k] = transforms[k]
 
         def transform_param(param, transform):  # type: ignore
             if isinstance(transform, tfp.bijectors.Bijector):
@@ -49,6 +57,8 @@ def build_transforms(transforms: Dict) -> Tuple[Callable, Callable]:
             else:
                 return param
 
-        return jax.tree_util.tree_multimap(transform_param, params, transforms)
+        return jax.tree_util.tree_multimap(
+            transform_param, params, transforms_
+        )
 
     return constrain_trans, unconstrain_trans
