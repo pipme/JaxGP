@@ -1,7 +1,9 @@
 import collections.abc
 import copy
+import time
 from typing import Any, Dict, NamedTuple, Optional, Union
 
+import jax.numpy as jnp
 import jaxopt
 
 import jaxgp as jgp
@@ -46,7 +48,6 @@ def train_model(
 
     else:
         obj_fun = neg_elbo
-    import time
 
     ts = time.time()
     print("Initial negative elbo = ", obj_fun(raw_params))
@@ -60,3 +61,69 @@ def train_model(
     t2 = time.time() - ts
     print("Time of jaxopt: ", t2)
     return soln
+
+
+def train_model_separate(
+    model: Union[GPR, SGPR, HeteroskedasticSGPR],
+    diff_params: Dict,
+    fixed_params: Optional[Dict] = None,
+    tol: Optional[float] = None,
+    options: Optional[float] = None,
+    transforms_jitted: Optional[tuple[Any, Any]] = None,
+    **kwargs,
+):
+    if transforms_jitted is not None:
+        params = model.params
+        constrain_trans, unconstrain_trans = transforms_jitted
+    else:
+        params, constrain_trans, unconstrain_trans = jgp.initialise(model)
+
+    if isinstance(model, GPR):
+        neg_elbo = model.build_mll(sign=-1.0)
+    else:
+        neg_elbo = model.build_elbo(sign=-1.0)
+
+    if fixed_params is None:
+        # Only work for optimizing inducing points
+        mask = diff_params["inducing_points"]
+        diff_raw_params = unconstrain_trans(
+            {"inducing_points": params["inducing_points"][mask]}
+        )
+        fixed_raw_params = unconstrain_trans(params)
+        fixed_raw_params["inducing_points"] = fixed_raw_params[
+            "inducing_points"
+        ][~mask]
+    else:
+        diff_raw_params = unconstrain_trans(diff_params)
+        fixed_raw_params = unconstrain_trans(fixed_params)
+
+    def obj_fun(diff_raw_params):
+        raw_params = combine_dict(diff_raw_params, fixed_raw_params)
+        return neg_elbo(raw_params)
+
+    ts = time.time()
+    print("Initial negative elbo = ", obj_fun(diff_raw_params))
+    solver = jaxopt.ScipyMinimize(
+        fun=obj_fun, jit=True, tol=tol, options=options
+    )
+    if "bounds" not in kwargs:
+        soln = solver._run(diff_raw_params, bounds=None, **kwargs)
+    else:
+        soln = solver._run(diff_raw_params, **kwargs)
+    t2 = time.time() - ts
+    print("Time of jaxopt: ", t2)
+    return soln
+
+
+def combine_dict(*args):
+    result = {}
+    for d in args:
+        for k in d.keys():
+            if k not in result.keys():
+                result[k] = d[k]
+            else:
+                if type(d[k]) is dict:
+                    result[k] = combine_dict(result[k], d[k])
+                else:
+                    result[k] = jnp.concatenate([result[k], d[k]])
+    return result
