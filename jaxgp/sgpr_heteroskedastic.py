@@ -49,8 +49,6 @@ class HeteroskedasticSGPR:
 
         self.inducing_points = inducingpoint_wrapper(inducing_points)
 
-        self.num_data = self.train_data.Y.shape[0]
-        self.num_latent_gps = self.train_data.Y.shape[1]
         self._params = concat_dictionaries(
             self.gprior.params,
             {"likelihood": self.likelihood.params},
@@ -101,7 +99,6 @@ class HeteroskedasticSGPR:
         LB = common.LB
         AAT = common.AAT
         X, Y = self.train_data.X, self.train_data.Y
-        num_data = self.num_data
         outdim = Y.shape[1]
         kdiag = gram(self.gprior.kernel, X, params["kernel"], full_cov=False)
         sigma_sq = self.likelihood.compute(
@@ -148,14 +145,15 @@ class HeteroskedasticSGPR:
 
     def build_elbo(self, sign=1.0):
         X, Y = self.train_data.X, self.train_data.Y
+        num_data = X.shape[0]
+        num_latent_gps = Y.shape[1]
         constrain_trans, unconstrain_trans = build_transforms(self.transforms)
 
         def elbo(raw_params: Dict):
             # transform params to constrained space
             params = constrain_trans(raw_params)
             common = self._common_calculation(params)
-            num_data = self.num_data
-            output_dim = self.num_latent_gps
+            output_dim = num_latent_gps
             const = -0.5 * num_data * output_dim * jnp.log(2 * jnp.pi)
             logdet = self.logdet_term(params, common)
             quad = self.quad_term(params, common)
