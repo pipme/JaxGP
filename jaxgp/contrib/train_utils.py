@@ -18,6 +18,7 @@ def train_model(
     tol: Optional[float] = None,
     options: Optional[float] = None,
     transforms_jitted: Optional[tuple[Any, Any]] = None,
+    return_soln: Optional[bool] = False,
     **kwargs,
 ) -> NamedTuple:
     if transforms_jitted is not None:
@@ -58,25 +59,31 @@ def train_model(
         soln = solver._run(raw_params, bounds=None, **kwargs)
     else:
         soln = solver._run(raw_params, **kwargs)
+    print(f"After optimization negative elbo = {soln.state.fun_val}")
     t2 = time.time() - ts
     print("Time of jaxopt: ", t2)
-    return soln
+    if return_soln:
+        return soln
+    else:
+        final_params = constrain_trans(soln.params)
+        return final_params
 
 
 def train_model_separate(
     model: Union[GPR, SGPR, HeteroskedasticSGPR],
+    params: Dict,
     diff_params: Dict,
     fixed_params: Optional[Dict] = None,
     tol: Optional[float] = None,
     options: Optional[float] = None,
     transforms_jitted: Optional[tuple[Any, Any]] = None,
+    return_soln: Optional[bool] = False,
     **kwargs,
 ):
     if transforms_jitted is not None:
-        params = model.params
         constrain_trans, unconstrain_trans = transforms_jitted
     else:
-        params, constrain_trans, unconstrain_trans = jgp.initialise(model)
+        _, constrain_trans, unconstrain_trans = jgp.initialise(model)
 
     if isinstance(model, GPR):
         neg_elbo = model.build_mll(sign=-1.0)
@@ -110,9 +117,16 @@ def train_model_separate(
         soln = solver._run(diff_raw_params, bounds=None, **kwargs)
     else:
         soln = solver._run(diff_raw_params, **kwargs)
+    print(f"After optimization negative elbo = {soln.state.fun_val}")
     t2 = time.time() - ts
     print("Time of jaxopt: ", t2)
-    return soln
+    if return_soln:
+        return soln
+    else:
+        diff_raw_params = soln.params
+        raw_params = combine_dict(diff_raw_params, fixed_raw_params)
+        final_params = constrain_trans(raw_params)
+        return final_params
 
 
 def combine_dict(*args):
