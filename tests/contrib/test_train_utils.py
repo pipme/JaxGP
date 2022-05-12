@@ -34,6 +34,8 @@ def test_train_model_seperate():
 
     inds = np.array([True, True, False, False, False])
     diff_params = {"inducing_points": inds}
-    soln = train_model_separate(model, diff_params, options={"disp": True})
+    soln = train_model_separate(
+        model, model.params, diff_params, options={"disp": True}
+    )
     final_params = constrain_trans(soln.params)
     assert final_params["inducing_points"].shape == (np.sum(inds), 2)

@@ -25,7 +25,7 @@ copyright = jaxgp.__copyright__
 version = jaxgp.__version__
 release = jaxgp.__version__
 
-exclude_patterns = ["_build"]
+exclude_patterns = ["_build", "**/_*.ipynb", "**/svgp*.ipynb"]
 html_theme = "sphinx_book_theme"
 html_title = "jaxgp"
 # html_logo = "_static/zap.svg"

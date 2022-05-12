@@ -117,7 +117,8 @@ class RBF(Stationary):
     def transforms(self) -> Dict:
         return {
             "outputscale": Config.positive_bijector,
-            "lengthscale": Config.positive_bijector,
+            # "lengthscale": Config.positive_bijector,
+            "lengthscale": Config.strict_positive_bijector,
         }
 
 

@@ -112,8 +112,9 @@ def test_HeteroskedasticSGPRPosterior_quad_mixture():
     )
     _, constrain_trans, unconstrain_trans = jgp.initialise(model)
 
-    # soln = train_model(model)
-    # final_params = constrain_trans(soln.params)
+    soln = train_model(model, options={"disp": True})
+    final_params = constrain_trans(soln.params)
+    print(soln.state.fun_val)
     final_params = model.params
     model.post_cache = model.posterior(final_params)
 

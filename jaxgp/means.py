@@ -99,6 +99,6 @@ class Quadratic(MeanFunction):
     def transforms(self) -> Dict:
         return {
             "mean_const": Config.identity_bijector,
-            "scale": Config.positive_bijector,
+            "scale": Config.strict_positive_bijector,
             "xm": Config.identity_bijector,
         }

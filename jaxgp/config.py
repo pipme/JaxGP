@@ -30,6 +30,9 @@ class Config:
         tfb.FillTriangular()
     )  # TODO: FillScaleTriL might be better?
     positive_minimum: jnp.float64 = 0.0
+    strict_positive_bijector: tfp.bijectors.Bijector = tfb.Shift(
+        jnp.array(1e-6)
+    )(tfb.Softplus())
 
 
 def default_jitter(K: Array) -> Array:
