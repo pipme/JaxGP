@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import numpy as np
 
 import jaxgp as jgp
-from jaxgp.contrib.train_utils import train_model_separate
+from jaxgp.contrib.train_utils import delete_none, train_model_separate
 
 
 @dataclass(frozen=True)
@@ -34,8 +34,20 @@ def test_train_model_seperate():
 
     inds = np.array([True, True, False, False, False])
     diff_params = {"inducing_points": inds}
-    soln = train_model_separate(
+    final_params = train_model_separate(
         model, model.params, diff_params, options={"disp": True}
     )
-    final_params = constrain_trans(soln.params)
-    assert final_params["inducing_points"].shape == (np.sum(inds), 2)
+    assert np.allclose(
+        model.params["inducing_points"][2:],
+        final_params["inducing_points"][2:],
+    )
+    assert np.all(
+        model.params["inducing_points"][:2]
+        != final_params["inducing_points"][:2]
+    )
+
+
+def test_delete_none():
+    d = {"1": 1, "2": {"3": None, "4": 4}, "5": None}
+    r = delete_none(d)
+    assert r == {"1": 1, "2": {"4": 4}}

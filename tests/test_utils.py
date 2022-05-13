@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # mypy: ignore-errors
-from jaxgp.utils import deep_update_no_new_key
+from jaxgp.utils import deep_update, deep_update_no_new_key
 
 
 def test_deep_update_no_new_key():
@@ -28,3 +28,11 @@ def test_deep_update_no_new_key():
     overrides = {"hello": {"value": 2}}
     res = deep_update_no_new_key(source, overrides)
     assert res == {"hello": {"value": 2, "no_change": 1}}
+
+
+def test_deep_update():
+    s = {"1": {"2": [2, 3]}, "3": 3}
+    o = {"1": {"2": [1, 3]}}
+    res = deep_update(s, o)
+    assert res == {"1": {"2": [1, 3]}, "3": 3}
+    assert s == {"1": {"2": [2, 3]}, "3": 3}

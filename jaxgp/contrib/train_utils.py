@@ -3,11 +3,13 @@ import copy
 import time
 from typing import Any, Dict, NamedTuple, Optional, Union
 
+import jax
 import jax.numpy as jnp
 import jaxopt
 
 import jaxgp as jgp
 from jaxgp import GPR, SGPR, HeteroskedasticSGPR
+from jaxgp.parameters import copy_dict_structure
 from jaxgp.utils import deep_update, deep_update_no_new_key
 
 
@@ -73,7 +75,6 @@ def train_model_separate(
     model: Union[GPR, SGPR, HeteroskedasticSGPR],
     params: Dict,
     diff_params: Dict,
-    fixed_params: Optional[Dict] = None,
     tol: Optional[float] = None,
     options: Optional[float] = None,
     transforms_jitted: Optional[tuple[Any, Any]] = None,
@@ -90,19 +91,30 @@ def train_model_separate(
     else:
         neg_elbo = model.build_elbo(sign=-1.0)
 
-    if fixed_params is None:
-        # Only work for optimizing inducing points
-        mask = diff_params["inducing_points"]
-        diff_raw_params = unconstrain_trans(
-            {"inducing_points": params["inducing_points"][mask]}
-        )
-        fixed_raw_params = unconstrain_trans(params)
-        fixed_raw_params["inducing_points"] = fixed_raw_params[
-            "inducing_points"
-        ][~mask]
-    else:
-        diff_raw_params = unconstrain_trans(diff_params)
-        fixed_raw_params = unconstrain_trans(fixed_params)
+    # Only work for optimizing inducing points
+    container = copy_dict_structure(params)
+    container = deep_update(container, diff_params)
+
+    def diff_f(v, mask):
+        if mask is not None:
+            return v[mask]
+        return None
+
+    def fixed_f(v, mask):
+        if mask is not None:
+            r = v[~mask]
+            if r.size == 0:
+                return None
+            return r
+        return v
+
+    diff_params = jax.tree_util.tree_multimap(diff_f, params, container)
+    diff_params = return_non_empty(diff_params)
+    fixed_params = jax.tree_util.tree_multimap(fixed_f, params, container)
+    fixed_params = return_non_empty(fixed_params)
+
+    diff_raw_params = unconstrain_trans(diff_params)
+    fixed_raw_params = unconstrain_trans(fixed_params)
 
     def obj_fun(diff_raw_params):
         raw_params = combine_dict(diff_raw_params, fixed_raw_params)
@@ -141,3 +153,30 @@ def combine_dict(*args):
                 else:
                     result[k] = jnp.concatenate([result[k], d[k]])
     return result
+
+
+def delete_none(_dict):
+    """Delete None values recursively from all of the dictionaries"""
+    for key, value in list(_dict.items()):
+        if isinstance(value, dict):
+            delete_none(value)
+        elif value is None:
+            del _dict[key]
+        elif isinstance(value, list):
+            for v_i in value:
+                if isinstance(v_i, dict):
+                    delete_none(v_i)
+    return _dict
+
+
+def return_non_empty(my_dict):
+    temp_dict = {}
+    for k, v in my_dict.items():
+        if v is not None:
+            if isinstance(v, dict):
+                return_dict = return_non_empty(v)
+                if return_dict:
+                    temp_dict[k] = return_dict
+            else:
+                temp_dict[k] = v
+    return temp_dict
