@@ -133,7 +133,11 @@ class SGPRPosterior:
         return mean, var
 
 
-# TODO: convert to frozen dataclass and cache intermidiate values?
+Cache = namedtuple(
+    "Cache",
+    ["A", "B", "LB", "AAT", "L", "Aerr", "c", "mean2", "Lmu_u"],
+)
+# TODO: convert to frozen dataclass?
 class HeteroskedasticSGPRPosterior:
     def __init__(
         self,
@@ -178,11 +182,7 @@ class HeteroskedasticSGPRPosterior:
         mean2 = linalg.cho_solve((LB, True), AAT @ mean2)
         mean2 = linalg.solve_triangular(L, mean2, lower=True, trans=1)
         Lmu_u = linalg.cho_solve((L, True), mu_u)
-        cache = namedtuple(
-            "cache",
-            ["A", "B", "LB", "AAT", "L", "Aerr", "c", "mean2", "Lmu_u"],
-        )
-        return cache(A, B, LB, AAT, L, Aerr, c, mean2, Lmu_u)
+        return Cache(A, B, LB, AAT, L, Aerr, c, mean2, Lmu_u)
 
     def predict_f(self, X_new: Array, params: Dict, full_cov: bool = False):
         if X_new.ndim == 1:
