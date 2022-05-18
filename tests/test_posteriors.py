@@ -135,3 +135,27 @@ def test_HeteroskedasticSGPRPosterior_quad_mixture():
     res = f(mu, sigma, weights)
     print("time: ", time.process_time() - start)
     return
+
+
+def test_HeteroskedasticSGPRPosterior_pickle():
+    rng = Datum().rng
+    D = 2
+    X = rng.randn(100, D)
+    y = np.sin(np.sum(X**2, 1)) + rng.randn(X.shape[0]) * 0.1
+
+    train_data = jgp.Dataset(X, y)
+    mean = jgp.means.Quadratic(input_dim=D)
+    kernel = jgp.kernels.RBF(active_dims=tuple(range(D)))
+    likelihood = jgp.likelihoods.HeteroskedasticGaussianVBMC(constant_add=True)
+    Z = X.copy()
+    model = jgp.HeteroskedasticSGPR(
+        train_data=train_data,
+        gprior=jgp.GPrior(kernel=kernel, mean_function=mean),
+        likelihood=likelihood,
+        inducing_points=Z,
+    )
+    post = model.posterior(model.params)
+    import pickle
+
+    with open("./test.pkl", "wb") as f:
+        pickle.dump(post, f)
