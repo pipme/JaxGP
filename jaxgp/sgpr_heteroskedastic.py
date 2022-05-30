@@ -195,7 +195,7 @@ class HeteroskedasticSGPR:
             + Kuf.T @ linalg.cho_solve((L, True), mu_u)
         )
         mu = sig_sqrt_kuu.T @ linalg.solve_triangular(
-            sig_sqrt, Kuf / sigma_sq[None, :] @ err, lower=True
+            sig_sqrt, Kuf / sigma_sq[None, :] @ err + mu_u, lower=True
         )
 
         return mu, cov
