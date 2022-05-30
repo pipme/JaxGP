@@ -135,7 +135,7 @@ class SGPRPosterior:
 
 Cache = namedtuple(
     "Cache",
-    ["A", "B", "LB", "AAT", "L", "Aerr", "c", "mean2", "Lmu_u"],
+    ["A", "B", "LB", "AAT", "L", "Aerr", "c", "mean2", "mean4", "Lmu_u"],
 )
 # TODO: convert to frozen dataclass?
 class HeteroskedasticSGPRPosterior:
@@ -178,11 +178,13 @@ class HeteroskedasticSGPRPosterior:
         c = linalg.solve_triangular(LB, Aerr, lower=True)
 
         mu_u = self.gprior.mean(params)(iv)
-        mean2 = linalg.solve_triangular(L, mu_u, lower=True)
-        mean2 = linalg.cho_solve((LB, True), AAT @ mean2)
+        L_inv_mu_u = linalg.solve_triangular(L, mu_u, lower=True)
+        mean2 = linalg.cho_solve((LB, True), AAT @ L_inv_mu_u)
         mean2 = linalg.solve_triangular(L, mean2, lower=True, trans=1)
         Lmu_u = linalg.cho_solve((L, True), mu_u)
-        return Cache(A, B, LB, AAT, L, Aerr, c, mean2, Lmu_u)
+        mean4 = linalg.cho_solve((LB, True), L_inv_mu_u)
+        mean4 = linalg.solve_triangular(L, mean4, lower=True, trans=1)
+        return Cache(A, B, LB, AAT, L, Aerr, c, mean2, mean4, Lmu_u)
 
     def predict_f(self, X_new: Array, params: Dict, full_cov: bool = False):
         if X_new.ndim == 1:
@@ -210,12 +212,15 @@ class HeteroskedasticSGPRPosterior:
         tmp2 = linalg.solve_triangular(LB, tmp1, lower=True)
         mean1 = tmp2.T @ c  # [N, num_latent_gps]
         mu_u = self.gprior.mean(params)(iv)
-        mean2 = linalg.solve_triangular(L, mu_u, lower=True)
-        mean2 = linalg.cho_solve((LB, True), AAT @ mean2)
+        L_inv_mu_u = linalg.solve_triangular(L, mu_u, lower=True)
+        mean2 = linalg.cho_solve((LB, True), AAT @ L_inv_mu_u)
         mean2 = linalg.solve_triangular(L, mean2, lower=True, trans=1)
         mean2 = Kus.T @ mean2
         mean3 = -Kus.T @ linalg.cho_solve((L, True), mu_u)
-        mean = mean1 + mean2 + mean3 + self.gprior.mean(params)(X_new)
+        mean4 = linalg.cho_solve((LB, True), L_inv_mu_u)
+        mean4 = linalg.solve_triangular(L, mean4, lower=True, trans=1)
+        mean4 = Kus.T @ mean4
+        mean = mean1 + mean2 + mean3 + mean4 + self.gprior.mean(params)(X_new)
 
         if full_cov:
             var = (
@@ -259,7 +264,9 @@ class HeteroskedasticSGPRPosterior:
         mean2 = self.cache.mean2
         mean2 = Kus.T @ mean2
         mean3 = -Kus.T @ self.cache.Lmu_u
-        mean = mean1 + mean2 + mean3 + self.gprior.mean(params)(X_new)
+        mean4 = self.cache.mean4
+        mean4 = Kus.T @ mean4
+        mean = mean1 + mean2 + mean3 + mean4 + self.gprior.mean(params)(X_new)
 
         if full_cov:
             var = (

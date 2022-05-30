@@ -143,15 +143,13 @@ class HeteroskedasticSGPR:
         quad = -0.5 * (err_inner_prod - c_inner_prod)
         return quad
 
-    def build_elbo(self, sign=1.0):
+    def build_elbo(self, sign=1.0, raw_flag=True):
         X, Y = self.train_data.X, self.train_data.Y
         num_data = X.shape[0]
         num_latent_gps = Y.shape[1]
         constrain_trans, unconstrain_trans = build_transforms(self.transforms)
 
-        def elbo(raw_params: Dict):
-            # transform params to constrained space
-            params = constrain_trans(raw_params)
+        def elbo(params: Dict):
             common = self._common_calculation(params)
             output_dim = num_latent_gps
             const = -0.5 * num_data * output_dim * jnp.log(2 * jnp.pi)
@@ -160,7 +158,15 @@ class HeteroskedasticSGPR:
             log_prior_density = evaluate_priors(params, self.hyp_prior)
             return sign * (const + logdet + quad + log_prior_density)
 
-        return elbo
+        def elbo_raw(raw_params: Dict):
+            # transform params to constrained space
+            params = constrain_trans(raw_params)
+            return elbo(params)
+
+        if raw_flag:
+            return elbo_raw
+        else:
+            return elbo
 
     def compute_qu(self, params: Dict) -> Tuple[Array, Array]:
         X, Y = self.train_data.X, self.train_data.Y
@@ -189,7 +195,7 @@ class HeteroskedasticSGPR:
             + Kuf.T @ linalg.cho_solve((L, True), mu_u)
         )
         mu = sig_sqrt_kuu.T @ linalg.solve_triangular(
-            sig_sqrt, Kuf / sigma_sq[None, :] @ err, lower=True
+            sig_sqrt, Kuf / sigma_sq[None, :] @ err + mu_u, lower=True
         )
 
         return mu, cov
