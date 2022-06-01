@@ -26,7 +26,11 @@ def test_GPRPosterior():
     y = np.sin(X) + 0.01 * rng.randn(len(X), 1)
     train_data = jgp.Dataset(X=X, Y=y)
     kernel = jgp.kernels.RBF(active_dims=(0,))
-    model = GPR(train_data=train_data, gprior=jgp.GPrior(kernel=kernel))
+    model = GPR(
+        train_data=train_data,
+        gprior=jgp.GPrior(kernel=kernel),
+        likelihood=jgp.likelihoods.Gaussian(),
+    )
     params, constrain_trans, unconstrain_trans = jgp.initialise(model)
     raw_params = unconstrain_trans(params)
     neg_mll = model.build_mll(sign=-1.0)
@@ -63,7 +67,8 @@ def test_GPRPosterior_heteroskedastic():
     model = GPR(
         train_data=train_data,
         gprior=jgp.GPrior(kernel=kernel),
-        sigma_sq=noise_variance,
+        likelihood=jgp.likelihoods.FixedHeteroskedasticGaussian(),
+        sigma_sq_user=noise_variance,
     )
     params, constrain_trans, unconstrain_trans = jgp.initialise(model)
     raw_params = unconstrain_trans(params)
@@ -112,7 +117,7 @@ def test_HeteroskedasticSGPRPosterior_quad_mixture():
     )
     _, constrain_trans, unconstrain_trans = jgp.initialise(model)
 
-    soln = train_model(model, options={"disp": True})
+    soln = train_model(model, options={"disp": True}, return_soln=True)
     final_params = constrain_trans(soln.params)
     print(soln.state.fun_val)
     final_params = model.params

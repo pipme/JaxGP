@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 import jax.numpy as jnp
 import jax.scipy.linalg as linalg
@@ -8,10 +8,16 @@ from .datasets import Dataset
 from .gps import GPrior
 from .helpers import Array
 from .kernels import cross_covariance, gram
-from .likelihoods import FixedHeteroskedasticGaussian, Gaussian, Likelihood
+from .likelihoods import (
+    FixedHeteroskedasticGaussian,
+    Gaussian,
+    HeteroskedasticGaussianVBMC,
+    Likelihood,
+)
 from .parameters import build_transforms
 from .posteriors import GPRPosterior
-from .utils import concat_dictionaries
+from .priors import evaluate_priors
+from .utils import concat_dictionaries, copy_dict_structure, deep_update
 
 
 class GPR:
@@ -41,16 +47,21 @@ class GPR:
         self,
         train_data: Dataset,
         gprior: GPrior,
-        sigma_sq: Optional[Array] = None,
+        likelihood: Union[
+            Gaussian, FixedHeteroskedasticGaussian, HeteroskedasticGaussianVBMC
+        ],
+        sigma_sq_user: Optional[Array] = None,
+        hyp_prior: Optional[Dict] = None,
     ) -> None:
         self.train_data = train_data
         self.gprior = gprior
-        self.sigma_sq = sigma_sq
-        if sigma_sq is not None:
-            self.sigma_sq = self.sigma_sq.squeeze()
-            self.likelihood = FixedHeteroskedasticGaussian()
+        self.likelihood = likelihood
+
+        if sigma_sq_user is not None:
+            self.sigma_sq_user = sigma_sq_user.squeeze()  # [N]
         else:
-            self.likelihood = Gaussian()
+            self.sigma_sq_user = None
+
         self.num_latent_gps = self.train_data.Y.shape[1]
         self._params = concat_dictionaries(
             self.gprior.params,
@@ -60,6 +71,11 @@ class GPR:
             self.gprior.transforms,
             {"likelihood": self.likelihood.transforms},
         )
+        if hyp_prior is not None:
+            self.hyp_prior = copy_dict_structure(self._params)
+            self.hyp_prior = deep_update(self.hyp_prior, hyp_prior)
+        else:
+            self.hyp_prior = None
 
     def build_mll(
         self, static_params: Optional[Dict] = None, sign: float = 1.0
@@ -86,12 +102,12 @@ class GPR:
 
             mu = self.gprior.mean(params)(X)
             Kxx = gram(self.gprior.kernel, X, params["kernel"])
-            if self.sigma_sq is not None:
-                covariance = Kxx + jnp.diag(self.sigma_sq)
-            else:
-                covariance = Kxx + params["likelihood"]["noise"] * jnp.eye(
-                    X.shape[0]
-                )
+            sigma_sq = self.likelihood.compute(
+                params["likelihood"], self.sigma_sq_user
+            )
+            if sigma_sq.shape[0] == 1:
+                sigma_sq = jnp.repeat(sigma_sq, Kxx.shape[0])
+            covariance = Kxx + jnp.diag(sigma_sq)
             covariance = default_jitter(covariance)
             L = linalg.cholesky(covariance, lower=True)
             det_sqrt = jnp.prod(jnp.diag(L))
@@ -103,9 +119,8 @@ class GPR:
                 - N / 2 * jnp.log(2 * jnp.pi)
             )  # [N, L]
             mll_value = mll_value.mean()
-            # TODO: missing priors for params
-            # log_prior_density = evaluate_priors(params, priors)
-            return sign * mll_value
+            log_prior_density = evaluate_priors(params, self.hyp_prior)
+            return sign * (mll_value + log_prior_density)
 
         return mll
 
@@ -120,12 +135,12 @@ class GPR:
     def posterior(self, params: Dict):
         X = self.train_data.X
         Kxx = gram(self.gprior.kernel, X, params["kernel"])
-        if self.sigma_sq is not None:
-            covariance = Kxx + jnp.diag(self.sigma_sq)
-        else:
-            covariance = Kxx + params["likelihood"]["noise"] * jnp.eye(
-                X.shape[0]
-            )
+        sigma_sq = self.likelihood.compute(
+            params["likelihood"], self.sigma_sq_user
+        )
+        if sigma_sq.shape[0] == 1:
+            sigma_sq = jnp.repeat(sigma_sq, Kxx.shape[0])
+        covariance = Kxx + jnp.diag(sigma_sq)
         covariance = default_jitter(covariance)
         Lchol = linalg.cholesky(covariance, lower=True)
         return GPRPosterior(
