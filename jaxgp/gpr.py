@@ -110,12 +110,11 @@ class GPR:
             covariance = Kxx + jnp.diag(sigma_sq)
             covariance = default_jitter(covariance)
             L = linalg.cholesky(covariance, lower=True)
-            det_sqrt = jnp.prod(jnp.diag(L))
-
+            log_det_sqrt = jnp.sum(jnp.log(jnp.diag(L)))
             mll_value = (
                 -0.5
                 * jnp.sum((Y - mu) * linalg.cho_solve((L, True), Y - mu), 0)
-                - jnp.log(det_sqrt)
+                - log_det_sqrt
                 - N / 2 * jnp.log(2 * jnp.pi)
             )  # [N, L]
             mll_value = mll_value.mean()
