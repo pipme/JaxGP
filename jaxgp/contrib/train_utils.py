@@ -1,11 +1,12 @@
 import collections.abc
 import copy
 import time
-from typing import Any, Dict, NamedTuple, Optional, Union
+from typing import Any, Callable, Dict, NamedTuple, Optional, Union
 
 import jax
 import jax.numpy as jnp
 import jaxopt
+from scalene import scalene_profiler
 
 import jaxgp as jgp
 from jaxgp import GPR, SGPR, HeteroskedasticSGPR
@@ -13,6 +14,7 @@ from jaxgp.parameters import copy_dict_structure
 from jaxgp.utils import deep_update, deep_update_no_new_key
 
 
+# @profile
 def train_model(
     model: Union[GPR, SGPR, HeteroskedasticSGPR],
     init_params: Optional[Dict] = None,
@@ -21,6 +23,7 @@ def train_model(
     options: Optional[float] = None,
     transforms_jitted: Optional[tuple[Any, Any]] = None,
     return_soln: Optional[bool] = False,
+    neg_elbo: Optional[Callable] = None,
     **kwargs,
 ) -> NamedTuple:
     if transforms_jitted is not None:
@@ -29,10 +32,12 @@ def train_model(
     else:
         params, constrain_trans, unconstrain_trans = jgp.initialise(model)
     raw_params = unconstrain_trans(params)
-    if isinstance(model, GPR):
-        neg_elbo = model.build_mll(sign=-1.0)
-    else:
-        neg_elbo = model.build_elbo(sign=-1.0)
+
+    if neg_elbo is None:
+        if isinstance(model, GPR):
+            neg_elbo = model.build_mll(sign=-1.0)
+        else:
+            neg_elbo = model.build_elbo(sign=-1.0)
 
     if init_params is not None:
         params = deep_update(params, init_params)
@@ -45,6 +50,7 @@ def train_model(
         fixed_raw_params = copy.deepcopy(fixed_params)
         fixed_raw_params = deep_update_no_new_key(fixed_raw_params, raw_params)
 
+        # @profile
         def obj_fun(raw_params):  # type: ignore
             raw_params = deep_update(raw_params, fixed_raw_params)
             return neg_elbo(raw_params)
@@ -64,6 +70,7 @@ def train_model(
     print(f"After optimization negative elbo = {soln.state.fun_val}")
     t2 = time.time() - ts
     print("Time of jaxopt: ", t2)
+
     if return_soln:
         return soln
     else:
