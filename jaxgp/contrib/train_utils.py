@@ -24,6 +24,7 @@ def train_model(
     transforms_jitted: Optional[tuple[Any, Any]] = None,
     return_soln: Optional[bool] = False,
     neg_elbo: Optional[Callable] = None,
+    jit: Optional[bool] = True,
     **kwargs,
 ) -> NamedTuple:
     if transforms_jitted is not None:
@@ -50,7 +51,6 @@ def train_model(
         fixed_raw_params = copy.deepcopy(fixed_params)
         fixed_raw_params = deep_update_no_new_key(fixed_raw_params, raw_params)
 
-        # @profile
         def obj_fun(raw_params):  # type: ignore
             raw_params = deep_update(raw_params, fixed_raw_params)
             return neg_elbo(raw_params)
@@ -61,7 +61,7 @@ def train_model(
     ts = time.time()
     print("Initial negative elbo = ", obj_fun(raw_params))
     solver = jaxopt.ScipyMinimize(
-        fun=obj_fun, jit=True, tol=tol, options=options
+        fun=obj_fun, jit=jit, tol=tol, options=options, method="L-BFGS-B"
     )
     if "bounds" not in kwargs:
         soln = solver._run(raw_params, bounds=None, **kwargs)
