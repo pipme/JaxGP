@@ -1,11 +1,14 @@
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, Tuple
 
+import jax
 import jax.numpy as jnp
 from jax import vmap
 
 from .config import Config
 from .helpers import Array, dataclass, field
+
+# TODO: more friendly api for kernel class, split to stationary kernels etc.
 
 
 class Distance:
@@ -123,19 +126,37 @@ class RBF(Stationary):
 
 
 def gram(
-    kernel: Stationary, inputs: Array, params: Dict, full_cov: bool = True
+    kernel: Stationary, X: Array, params: Dict, full_cov: bool = True
 ) -> Array:
     """Compute gram matrix of the inputs."""
+    if isinstance(kernel, RBF):
+        if full_cov:
+            X = X / params["lengthscale"]
+            Xs = jnp.sum(X**2, -1)
+            dist = -2 * X @ X.T
+            dist += Xs[:, None] + Xs[None, :]
+            return params["outputscale"] * jnp.exp(-0.5 * dist)
+        else:
+            return params["outputscale"] * jnp.ones(X.shape[0])
     if full_cov:
-        return vmap(
-            lambda x1: vmap(lambda y1: kernel(x1, y1, params))(inputs)
-        )(inputs)
+        return vmap(lambda x1: vmap(lambda y1: kernel(x1, y1, params))(X))(X)
     else:
-        return vmap(lambda x: kernel(x, x, params))(inputs)
+        return vmap(lambda x: kernel(x, x, params))(X)
 
 
 def cross_covariance(
     kernel: Stationary, X: Array, Y: Array, params: Dict
 ) -> Array:
     """Compute covariance matrix between X and Y."""
+
+    if isinstance(kernel, RBF):
+        # more efficient than vmap, vmap is similar to broadcasting
+        # "jnp.sum((X[:, None, :] - Y[None, :, :])**2, -1)"
+        X = X / params["lengthscale"]
+        Y = Y / params["lengthscale"]
+        Xs = jnp.sum(X**2, -1)
+        X2s = jnp.sum(Y**2, -1)
+        dist = -2 * X @ Y.T
+        dist += Xs[:, None] + X2s[None, :]
+        return params["outputscale"] * jnp.exp(-0.5 * dist)
     return vmap(lambda x1: vmap(lambda y1: kernel(x1, y1, params))(Y))(X)
