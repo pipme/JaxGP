@@ -183,8 +183,16 @@ class HeteroskedasticSGPR:
             params["likelihood"], self.sigma_sq_user
         )  # [N]
 
-        sig = Kuu + Kuf / sigma_sq[None, :] @ Kuf.T
-        sig_sqrt = linalg.cholesky(sig, lower=True)
+        # More straightforward but less robust
+        # sig = Kuu + Kuf / sigma_sq[None, :] @ Kuf.T
+        # sig_sqrt = linalg.cholesky(sig, lower=True)
+
+        sigma = jnp.sqrt(sigma_sq)
+        A = linalg.solve_triangular(L, Kuf, lower=True) / sigma[None, :]
+        AAT = A @ A.T
+        B = AAT + jnp.eye(params["inducing_points"].shape[0])
+        LB = linalg.cholesky(B, lower=True)
+        sig_sqrt = L @ LB
         sig_sqrt_kuu = linalg.solve_triangular(sig_sqrt, Kuu, lower=True)
 
         cov = sig_sqrt_kuu.T @ sig_sqrt_kuu
