@@ -105,7 +105,7 @@ class GPR:
             sigma_sq = self.likelihood.compute(
                 params["likelihood"], self.sigma_sq_user
             )
-            if sigma_sq.shape[0] == 1:
+            if sigma_sq.ndim == 1 and sigma_sq.shape[0] == 1:
                 sigma_sq = jnp.repeat(sigma_sq, Kxx.shape[0])
             covariance = Kxx + jnp.diag(sigma_sq)
             covariance = default_jitter(covariance)

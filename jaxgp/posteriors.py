@@ -135,7 +135,21 @@ class SGPRPosterior:
 
 Cache = namedtuple(
     "Cache",
-    ["A", "B", "LB", "AAT", "L", "Aerr", "c", "mean2", "mean4", "Lmu_u"],
+    [
+        "A",
+        "B",
+        "LB",
+        "AAT",
+        "L",
+        "Aerr",
+        "c",
+        "mean2",
+        "mean4",
+        "Lmu_u",
+        "Kuf",
+        "Kuu",
+        "sigma_sq",
+    ],
 )
 # TODO: convert to frozen dataclass?
 class HeteroskedasticSGPRPosterior:
@@ -164,12 +178,12 @@ class HeteroskedasticSGPRPosterior:
         err = Y - self.gprior.mean(params)(X)
         Kuf = cross_covariance(self.gprior.kernel, iv, X, params["kernel"])
         Kuu = cross_covariance(self.gprior.kernel, iv, iv, params["kernel"])
-        Kuu = default_jitter(Kuu)
+        Kuu_j = default_jitter(Kuu)
         sigma_sq = self.likelihood.compute(
             params["likelihood"], self.sigma_sq_user
         )  # [N,] or [1,]
         sigma = jnp.sqrt(sigma_sq)
-        L = linalg.cholesky(Kuu, lower=True)
+        L = linalg.cholesky(Kuu_j, lower=True)
         A = linalg.solve_triangular(L, Kuf, lower=True) / sigma[None, :]
         AAT = A @ A.T
         B = AAT + jnp.eye(num_inducing)
@@ -184,7 +198,21 @@ class HeteroskedasticSGPRPosterior:
         Lmu_u = linalg.cho_solve((L, True), mu_u)
         mean4 = linalg.cho_solve((LB, True), L_inv_mu_u)
         mean4 = linalg.solve_triangular(L, mean4, lower=True, trans=1)
-        return Cache(A, B, LB, AAT, L, Aerr, c, mean2, mean4, Lmu_u)
+        return Cache(
+            A,
+            B,
+            LB,
+            AAT,
+            L,
+            Aerr,
+            c,
+            mean2,
+            mean4,
+            Lmu_u,
+            Kuf,
+            Kuu,
+            sigma_sq,
+        )
 
     def predict_f(self, X_new: Array, params: Dict, full_cov: bool = False):
         if X_new.ndim == 1:
@@ -241,6 +269,7 @@ class HeteroskedasticSGPRPosterior:
                 + jnp.sum(tmp2**2, 0)
                 - jnp.sum(tmp1**2, 0)
             )
+            var = jnp.maximum(var, 0.0)
             var = jnp.tile(
                 var[None, ...], [self.num_latent_gps, 1]
             )  # [num_latent_gps, N]
