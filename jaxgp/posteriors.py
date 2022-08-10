@@ -729,32 +729,30 @@ class HeteroskedasticSGPRPosterior:
             )  # [K]
             I += nu_k
         F = jnp.sum(weights * I)
-
-        mu = jax.lax.stop_gradient(mu)
-        sigma = jax.lax.stop_gradient(sigma)
-        weights = jax.lax.stop_gradient(weights)
-        w = jax.lax.stop_gradient(w)
-        F_var = 0.0
-
-        tau = jnp.sqrt(
-            sigma[:, None, :] ** 2 + sigma[None, ...] ** 2 + ell**2
-        )  # [K, K, D]
-        nf = sf2 * jnp.prod(ell) / jnp.prod(tau, -1)  # [K, K]
-        delta = (mu[:, None, :] - mu[None, ...]) / tau  # [K, K, D]
-        J = nf * jnp.exp(-0.5 * jnp.sum(delta**2, -1))  # [K, K]
-
-        invKwk_1 = linalg.cho_solve((L, True), w.T)  # [N_iv, K]
-        tmp = linalg.solve_triangular(L, w.T, lower=True)  # [N_iv, K]
-        tmp = linalg.cho_solve((LB, True), tmp)  # [N_iv, K]
-        invKwk_2 = linalg.solve_triangular(L.T, tmp)  # [N_iv, K]
-        invKwk = invKwk_1 - invKwk_2  # [N_iv, K]
-        J -= w @ invKwk  # [K, K]
-
-        J = jnp.maximum(jnp.finfo(jnp.float64).eps, J)
-        F_var = jnp.sum(weights[:, None] * weights[None, :] * J)
-
-        # Correct for numerical error
         if compute_var:
+            mu = jax.lax.stop_gradient(mu)
+            sigma = jax.lax.stop_gradient(sigma)
+            weights = jax.lax.stop_gradient(weights)
+            w = jax.lax.stop_gradient(w)
+            F_var = 0.0
+
+            tau = jnp.sqrt(
+                sigma[:, None, :] ** 2 + sigma[None, ...] ** 2 + ell**2
+            )  # [K, K, D]
+            nf = sf2 * jnp.prod(ell) / jnp.prod(tau, -1)  # [K, K]
+            delta = (mu[:, None, :] - mu[None, ...]) / tau  # [K, K, D]
+            J = nf * jnp.exp(-0.5 * jnp.sum(delta**2, -1))  # [K, K]
+
+            invKwk_1 = linalg.cho_solve((L, True), w.T)  # [N_iv, K]
+            tmp = linalg.solve_triangular(L, w.T, lower=True)  # [N_iv, K]
+            tmp = linalg.cho_solve((LB, True), tmp)  # [N_iv, K]
+            invKwk_2 = linalg.solve_triangular(L.T, tmp)  # [N_iv, K]
+            invKwk = invKwk_1 - invKwk_2  # [N_iv, K]
+            J -= w @ invKwk  # [K, K]
+
+            J = jnp.maximum(jnp.finfo(jnp.float64).eps, J)
+            F_var = jnp.sum(weights[:, None] * weights[None, :] * J)
+            # Correct for numerical error
             F_var = jnp.maximum(F_var, jnp.finfo(jnp.float64).eps)
         else:
             F_var = None
