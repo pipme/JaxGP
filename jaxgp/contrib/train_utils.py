@@ -25,6 +25,7 @@ def train_model(
     return_soln: Optional[bool] = False,
     neg_elbo: Optional[Callable] = None,
     jit: Optional[bool] = True,
+    logger = None,
     **kwargs,
 ) -> NamedTuple:
     if transforms_jitted is not None:
@@ -59,7 +60,11 @@ def train_model(
         obj_fun = neg_elbo
 
     ts = time.time()
-    print("Initial negative elbo = ", obj_fun(raw_params))
+    if logger is None:
+        print_fun = print
+    else:
+        print_fun = logger.debug
+    print_fun(f"Initial negative elbo = {obj_fun(raw_params)}")
     solver = jaxopt.ScipyMinimize(
         fun=obj_fun, jit=jit, tol=tol, options=options, method="L-BFGS-B"
     )
@@ -67,9 +72,9 @@ def train_model(
         soln = solver._run(raw_params, bounds=None, **kwargs)
     else:
         soln = solver._run(raw_params, **kwargs)
-    print(f"After optimization negative elbo = {soln.state.fun_val}")
+    print_fun(f"After optimization negative elbo = {soln.state.fun_val}")
     t2 = time.time() - ts
-    print("Time of jaxopt: ", t2)
+    print_fun(f"Time of jaxopt: {t2}")
 
     if return_soln:
         return soln
