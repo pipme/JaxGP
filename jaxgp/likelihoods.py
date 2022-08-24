@@ -297,7 +297,7 @@ class HeteroskedasticGaussianVBMC(Likelihood):
         if self.constant_add:
             noise_var = jnp.array(params["noise_add"])
         else:
-            noise_var = jnp.finfo(jnp.float64).eps
+            noise_var = jnp.array([jnp.finfo(jnp.float64).eps])
 
         if self.user_provided_add:
             assert sigma_sq is not None, "sigma_sq need to be provided"

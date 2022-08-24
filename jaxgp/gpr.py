@@ -105,17 +105,16 @@ class GPR:
             sigma_sq = self.likelihood.compute(
                 params["likelihood"], self.sigma_sq_user
             )
-            if sigma_sq.shape[0] == 1:
+            if sigma_sq.ndim == 1 and sigma_sq.shape[0] == 1:
                 sigma_sq = jnp.repeat(sigma_sq, Kxx.shape[0])
             covariance = Kxx + jnp.diag(sigma_sq)
             covariance = default_jitter(covariance)
             L = linalg.cholesky(covariance, lower=True)
-            det_sqrt = jnp.prod(jnp.diag(L))
-
+            log_det_sqrt = jnp.sum(jnp.log(jnp.diag(L)))
             mll_value = (
                 -0.5
                 * jnp.sum((Y - mu) * linalg.cho_solve((L, True), Y - mu), 0)
-                - jnp.log(det_sqrt)
+                - log_det_sqrt
                 - N / 2 * jnp.log(2 * jnp.pi)
             )  # [N, L]
             mll_value = mll_value.mean()

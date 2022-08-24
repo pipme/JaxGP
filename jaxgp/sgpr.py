@@ -14,6 +14,7 @@ from .kernels import cross_covariance, gram
 from .likelihoods import Gaussian, Likelihood
 from .parameters import build_transforms
 from .posteriors import SGPRPosterior
+from .priors import evaluate_priors
 from .utils import concat_dictionaries, inducingpoint_wrapper
 
 
@@ -24,11 +25,13 @@ class SGPR:
         gprior: GPrior,
         likelihood: Gaussian,
         inducing_points: InducingPoints,
-        hyp_prior: Optional[GPrior] = None,
+        hyp_prior: Optional[Dict] = None,
     ) -> None:
         self.train_data = train_data
         self.gprior = gprior
         self.likelihood = likelihood
+        if not isinstance(self.likelihood, Gaussian):
+            raise ValueError("Only Gaussian likelihood is supported.")
         self.inducing_points = inducingpoint_wrapper(inducing_points)
 
         self.hyp_prior = hyp_prior
@@ -56,7 +59,7 @@ class SGPR:
     def _common_calculation(self, params: Dict):
         X = self.train_data.X
         iv = params["inducing_points"]
-        sigma_sq = params["likelihood"]["noise"]
+        sigma_sq = params["likelihood"]["noise"].squeeze()
 
         Kuf = cross_covariance(self.gprior.kernel, iv, X, params["kernel"])
         Kuu = cross_covariance(self.gprior.kernel, iv, iv, params["kernel"])
@@ -129,7 +132,8 @@ class SGPR:
             const = -0.5 * num_data * output_dim * jnp.log(2 * jnp.pi)
             logdet = self.logdet_term(params, common)
             quad = self.quad_term(params, common)
-            return sign * (const + logdet + quad)
+            log_prior_density = evaluate_priors(params, self.hyp_prior)
+            return sign * (const + logdet + quad + log_prior_density)
 
         return elbo
 
@@ -143,7 +147,9 @@ class SGPR:
             self.gprior.kernel, params["inducing_points"], params["kernel"]
         )
         Kuu = default_jitter(Kuu)
-        sig = Kuu + (params["likelihood"]["noise"] ** -1) * Kuf @ Kuf.T
+        sig = (
+            Kuu + (params["likelihood"]["noise"].squeeze() ** -1) * Kuf @ Kuf.T
+        )
         sig_sqrt = linalg.cholesky(sig, lower=True)
         sig_sqrt_kuu = linalg.solve_triangular(sig_sqrt, Kuu, lower=True)
 
@@ -152,7 +158,7 @@ class SGPR:
         mu = (
             sig_sqrt_kuu.T
             @ linalg.solve_triangular(sig_sqrt, Kuf @ err, lower=True)
-            / params["likelihood"]["noise"]
+            / params["likelihood"]["noise"].squeeze()
         )
 
         return mu, cov

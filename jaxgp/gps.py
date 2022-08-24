@@ -45,12 +45,12 @@ class GPrior(GP):
 
         return mean_fn
 
-    def variance(self, params: dict) -> Callable[[Array], Array]:
+    def variance(
+        self, params: dict, full_cov: Optional[bool] = False
+    ) -> Callable[[Array], Array]:
         def variance_fn(X: Array) -> Array:
-            Kff = gram(self.kernel, X, params["kernel"])
-            jitter_matrix = jnp.eye(X.shape[0]) * 1e-8
-            covariance_matrix = Kff + jitter_matrix
-            return covariance_matrix
+            Kff = gram(self.kernel, X, params["kernel"], full_cov)
+            return Kff.squeeze()
 
         return variance_fn
 
@@ -64,7 +64,7 @@ class GPrior(GP):
     def random_variable(self, X: Array, params: dict) -> tfd.Distribution:
         N = X.shape[0]
         mu = self.mean(params)(X)
-        sigma = self.variance(params)(X)
+        sigma = self.variance(params, full_cov=True)(X)
         sigma += jnp.eye(N) * 1e-8
         return tfd.MultivariateNormalTriL(
             mu.squeeze(), linalg.cholesky(sigma, lower=True)

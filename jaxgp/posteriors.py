@@ -8,6 +8,8 @@ import jax.numpy as jnp
 import jax.scipy.linalg as linalg
 import numpy as np
 import tensorflow_probability.substrates.jax.distributions as tfd
+import treeo as to
+from jax.tree_util import register_pytree_node_class
 
 from .config import default_jitter
 from .datasets import Dataset
@@ -64,7 +66,7 @@ class GPRPosterior:
     ) -> Tuple[Array, Array]:
         if X_test.ndim == 1:
             X_test = X_test[..., None]
-        X, Y = self.train_data.X, self.train_data.Y
+        X, Y = self.X, self.train_data.Y
         prior_distance = Y - self.gprior.mean(self.hyp_params)(X)
         weights = linalg.cho_solve((self.Lchol, True), prior_distance)
         prior_mean_at_test_inputs = self.gprior.mean(self.hyp_params)(X_test)
@@ -135,10 +137,34 @@ class SGPRPosterior:
 
 Cache = namedtuple(
     "Cache",
-    ["A", "B", "LB", "AAT", "L", "Aerr", "c", "mean2", "mean4", "Lmu_u"],
+    [
+        "A",
+        "B",
+        "LB",
+        "AAT",
+        "L",
+        "Aerr",
+        "c",
+        "mean2",
+        "mean4",
+        "Lmu_u",
+        "Kuf",
+        "Kuu",
+        "sigma_sq",
+    ],
 )
-# TODO: convert to frozen dataclass?
-class HeteroskedasticSGPRPosterior:
+
+
+class HeteroskedasticSGPRPosterior(to.Tree):
+    X: Array = to.field(node=True)
+    Y: Array = to.field(node=True)
+    params_cache: Dict = to.field(node=True)
+    cache: Optional[Cache] = to.field(node=True)
+    sigma_sq_user: Array = to.field(node=True)
+    gprior: GPrior = to.field(node=False)
+    likelihood: Likelihood = to.field(node=False)
+    num_latent_gps: int = to.field(node=False)
+
     def __init__(
         self,
         train_data: Dataset,
@@ -147,7 +173,7 @@ class HeteroskedasticSGPRPosterior:
         sigma_sq_user: Array,
         params_cache: Optional[Dict] = None,
     ) -> None:
-        self.train_data = train_data
+        self.X, self.Y = train_data.X, train_data.Y
         self.gprior = gprior
         self.likelihood = likelihood
         self.num_latent_gps = train_data.Y.shape[-1]
@@ -158,18 +184,18 @@ class HeteroskedasticSGPRPosterior:
             self.cache = self._precompute(params_cache)
 
     def _precompute(self, params: Dict) -> NamedTuple:
-        X, Y = self.train_data.X, self.train_data.Y
+        X, Y = self.X, self.Y
         iv = params["inducing_points"]
         num_inducing = iv.shape[0]
         err = Y - self.gprior.mean(params)(X)
         Kuf = cross_covariance(self.gprior.kernel, iv, X, params["kernel"])
         Kuu = cross_covariance(self.gprior.kernel, iv, iv, params["kernel"])
-        Kuu = default_jitter(Kuu)
+        Kuu_j = default_jitter(Kuu)
         sigma_sq = self.likelihood.compute(
             params["likelihood"], self.sigma_sq_user
         )  # [N,] or [1,]
         sigma = jnp.sqrt(sigma_sq)
-        L = linalg.cholesky(Kuu, lower=True)
+        L = linalg.cholesky(Kuu_j, lower=True)
         A = linalg.solve_triangular(L, Kuf, lower=True) / sigma[None, :]
         AAT = A @ A.T
         B = AAT + jnp.eye(num_inducing)
@@ -184,12 +210,26 @@ class HeteroskedasticSGPRPosterior:
         Lmu_u = linalg.cho_solve((L, True), mu_u)
         mean4 = linalg.cho_solve((LB, True), L_inv_mu_u)
         mean4 = linalg.solve_triangular(L, mean4, lower=True, trans=1)
-        return Cache(A, B, LB, AAT, L, Aerr, c, mean2, mean4, Lmu_u)
+        return Cache(
+            A,
+            B,
+            LB,
+            AAT,
+            L,
+            Aerr,
+            c,
+            mean2,
+            mean4,
+            Lmu_u,
+            Kuf,
+            Kuu,
+            sigma_sq,
+        )
 
     def predict_f(self, X_new: Array, params: Dict, full_cov: bool = False):
         if X_new.ndim == 1:
             X_new = X_new[..., None]
-        X, Y = self.train_data.X, self.train_data.Y
+        X, Y = self.X, self.Y
         iv = params["inducing_points"]
         num_inducing = iv.shape[0]
         err = Y - self.gprior.mean(params)(X)
@@ -241,17 +281,18 @@ class HeteroskedasticSGPRPosterior:
                 + jnp.sum(tmp2**2, 0)
                 - jnp.sum(tmp1**2, 0)
             )
+            var = jnp.maximum(var, 0.0)
             var = jnp.tile(
                 var[None, ...], [self.num_latent_gps, 1]
             )  # [num_latent_gps, N]
         return mean, var
 
-    @partial(jax.jit, static_argnums=[0, 2])
+    @partial(jax.jit, static_argnums=(2,))
     def predict_f_with_precomputed(self, X_new: Array, full_cov: bool = False):
         params = self.params_cache
         if X_new.ndim == 1:
             X_new = X_new[..., None]
-        X, Y = self.train_data.X, self.train_data.Y
+        X, Y = self.X, self.Y
         iv = params["inducing_points"]
 
         Kus = cross_covariance(self.gprior.kernel, iv, X_new, params["kernel"])
@@ -329,7 +370,7 @@ class HeteroskedasticSGPRPosterior:
                 "kernel."
             )
 
-        X, Y = self.train_data.X, self.train_data.Y
+        X, Y = self.X, self.Y
         N, D = X.shape
 
         if jnp.size(mu) == 1:
@@ -465,7 +506,7 @@ class HeteroskedasticSGPRPosterior:
                 "kernel."
             )
 
-        X, Y = self.train_data.X, self.train_data.Y
+        X, Y = self.X, self.Y
         N, D = X.shape
 
         if jnp.size(mu) == 1:
@@ -628,7 +669,7 @@ class HeteroskedasticSGPRPosterior:
                 "kernel."
             )
 
-        X, Y = self.train_data.X, self.train_data.Y
+        X, Y = self.X, self.Y
         N, D = X.shape
 
         if jnp.size(mu) == 1:
@@ -650,11 +691,6 @@ class HeteroskedasticSGPRPosterior:
             xm = params["mean_function"]["xm"]
             scale = params["mean_function"]["scale"]
 
-        sigma_sq_obs = self.likelihood.compute(
-            params["likelihood"], self.sigma_sq_user
-        )
-        sigma_obs = jnp.sqrt(sigma_sq_obs)
-
         iv = params["inducing_points"]  # [N_iv, D]
         num_inducing = iv.shape[0]
 
@@ -667,7 +703,6 @@ class HeteroskedasticSGPRPosterior:
         # LB = linalg.cholesky(B, lower=True)
         L = self.cache.L
         LB = self.cache.LB
-        c = self.cache.c
 
         ell = params["kernel"]["lengthscale"]  # [D]
         sf2 = params["kernel"]["outputscale"].squeeze()
@@ -700,32 +735,30 @@ class HeteroskedasticSGPRPosterior:
             )  # [K]
             I += nu_k
         F = jnp.sum(weights * I)
-
-        mu = jax.lax.stop_gradient(mu)
-        sigma = jax.lax.stop_gradient(sigma)
-        weights = jax.lax.stop_gradient(weights)
-        w = jax.lax.stop_gradient(w)
-        F_var = 0.0
-
-        tau = jnp.sqrt(
-            sigma[:, None, :] ** 2 + sigma[None, ...] ** 2 + ell**2
-        )  # [K, K, D]
-        nf = sf2 * jnp.prod(ell) / jnp.prod(tau, -1)  # [K, K]
-        delta = (mu[:, None, :] - mu[None, ...]) / tau  # [K, K, D]
-        J = nf * jnp.exp(-0.5 * jnp.sum(delta**2, -1))  # [K, K]
-
-        invKwk_1 = linalg.cho_solve((L, True), w.T)  # [N_iv, K]
-        tmp = linalg.solve_triangular(L, w.T, lower=True)  # [N_iv, K]
-        tmp = linalg.cho_solve((LB, True), tmp)  # [N_iv, K]
-        invKwk_2 = linalg.solve_triangular(L.T, tmp)  # [N_iv, K]
-        invKwk = invKwk_1 - invKwk_2  # [N_iv, K]
-        J -= w @ invKwk  # [K, K]
-
-        J = jnp.maximum(jnp.finfo(jnp.float64).eps, J)
-        F_var = jnp.sum(weights[:, None] * weights[None, :] * J)
-
-        # Correct for numerical error
         if compute_var:
+            mu = jax.lax.stop_gradient(mu)
+            sigma = jax.lax.stop_gradient(sigma)
+            weights = jax.lax.stop_gradient(weights)
+            w = jax.lax.stop_gradient(w)
+            F_var = 0.0
+
+            tau = jnp.sqrt(
+                sigma[:, None, :] ** 2 + sigma[None, ...] ** 2 + ell**2
+            )  # [K, K, D]
+            nf = sf2 * jnp.prod(ell) / jnp.prod(tau, -1)  # [K, K]
+            delta = (mu[:, None, :] - mu[None, ...]) / tau  # [K, K, D]
+            J = nf * jnp.exp(-0.5 * jnp.sum(delta**2, -1))  # [K, K]
+
+            invKwk_1 = linalg.cho_solve((L, True), w.T)  # [N_iv, K]
+            tmp = linalg.solve_triangular(L, w.T, lower=True)  # [N_iv, K]
+            tmp = linalg.cho_solve((LB, True), tmp)  # [N_iv, K]
+            invKwk_2 = linalg.solve_triangular(L.T, tmp)  # [N_iv, K]
+            invKwk = invKwk_1 - invKwk_2  # [N_iv, K]
+            J -= w @ invKwk  # [K, K]
+
+            J = jnp.maximum(jnp.finfo(jnp.float64).eps, J)
+            F_var = jnp.sum(weights[:, None] * weights[None, :] * J)
+            # Correct for numerical error
             F_var = jnp.maximum(F_var, jnp.finfo(jnp.float64).eps)
         else:
             F_var = None
