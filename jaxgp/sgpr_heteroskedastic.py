@@ -4,6 +4,8 @@ from typing import Dict, NamedTuple, Optional, Tuple, Union
 import jax
 import jax.numpy as jnp
 import jax.scipy.linalg as linalg
+from jax import lax
+from jax.experimental import checkify
 
 from .abstractions import InducingPoints
 from .config import default_jitter
@@ -82,8 +84,15 @@ class HeteroskedasticSGPR:
         )  # [N,] or [1,]
         Kuf = cross_covariance(self.gprior.kernel, iv, X, params["kernel"])
         Kuu = cross_covariance(self.gprior.kernel, iv, iv, params["kernel"])
-        Kuu = default_jitter(Kuu)
+        Kuu = default_jitter(Kuu, 10**3)
         L = linalg.cholesky(Kuu, lower=True)
+        # cond_fun = lambda x: jnp.any(jnp.isnan(x[0])) & (x[1] < 7)
+        # body_fun = lambda x: (
+        #     linalg.cholesky(default_jitter(Kuu, 10 ** x[1]), lower=True),
+        #     x[1] + 1,
+        # )
+        # L, i = lax.while_loop(cond_fun, body_fun, (L, 1))
+        checkify.checkify(jnp.all(jnp.isfinite(L)), "Cholesky failed")
         sigma = jnp.sqrt(sigma_sq)
 
         # Compute intermediate matrices
