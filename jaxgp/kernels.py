@@ -132,9 +132,9 @@ def gram(
     if isinstance(kernel, RBF):
         if full_cov:
             X = X / params["lengthscale"]
-            Xs = jnp.sum(X**2, -1)
-            dist = -2 * X @ X.T
-            dist += Xs[:, None] + Xs[None, :]
+            dist = euclidean_distance(X)
+            # i, j = jnp.diag_indices(min(dist.shape[-2:]))
+            # dist = dist.at[..., i, j].set(0.)
             return params["outputscale"] * jnp.exp(-0.5 * dist)
         else:
             return params["outputscale"] * jnp.ones(X.shape[0])
@@ -154,9 +154,27 @@ def cross_covariance(
         # "jnp.sum((X[:, None, :] - Y[None, :, :])**2, -1)"
         X = X / params["lengthscale"]
         Y = Y / params["lengthscale"]
+        dist = euclidean_distance(X, Y)
+        return params["outputscale"] * jnp.exp(-0.5 * dist)
+    return vmap(lambda x1: vmap(lambda y1: kernel(x1, y1, params))(Y))(X)
+
+
+def euclidean_distance(X, Y=None):
+    if Y is None:
+        mu = X.mean(0)
+        X -= mu
+        Xs = jnp.sum(X**2, -1)
+        dist = -2 * X @ X.T
+        dist += Xs[:, None] + Xs[None, :]
+    else:
+        n = X.shape[0]
+        m = Y.shape[0]
+        mu = n / (m + n) * X.mean(0) + m / (m + n) * Y.mean(0)
+        X -= mu
+        Y -= mu
         Xs = jnp.sum(X**2, -1)
         X2s = jnp.sum(Y**2, -1)
         dist = -2 * X @ Y.T
         dist += Xs[:, None] + X2s[None, :]
-        return params["outputscale"] * jnp.exp(-0.5 * dist)
-    return vmap(lambda x1: vmap(lambda y1: kernel(x1, y1, params))(Y))(X)
+    dist = jnp.maximum(dist, 0.)
+    return dist
