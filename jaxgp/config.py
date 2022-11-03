@@ -35,5 +35,5 @@ class Config:
     )(tfb.Softplus())
 
 
-def default_jitter(K: Array) -> Array:
-    return K + Config.jitter * jnp.eye(K.shape[-1])
+def default_jitter(K: Array, factor: float = 1) -> Array:
+    return K + factor * Config.jitter * jnp.eye(K.shape[-1])

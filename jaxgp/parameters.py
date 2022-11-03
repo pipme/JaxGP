@@ -41,9 +41,7 @@ def build_transforms(transforms: Dict) -> Tuple[Callable, Callable]:
             else:
                 return param
 
-        return jax.tree_util.tree_multimap(
-            transform_param, params, transforms_
-        )
+        return jax.tree_util.tree_map(transform_param, params, transforms_)
 
     def unconstrain_trans(params: Dict) -> Dict:
         params = sort_dict(params)
@@ -57,8 +55,6 @@ def build_transforms(transforms: Dict) -> Tuple[Callable, Callable]:
             else:
                 return param
 
-        return jax.tree_util.tree_multimap(
-            transform_param, params, transforms_
-        )
+        return jax.tree_util.tree_map(transform_param, params, transforms_)
 
     return constrain_trans, unconstrain_trans

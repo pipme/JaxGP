@@ -4,6 +4,8 @@ from typing import Dict, NamedTuple, Optional, Tuple, Union
 import jax
 import jax.numpy as jnp
 import jax.scipy.linalg as linalg
+from jax import lax
+from jax.experimental import checkify
 
 from .abstractions import InducingPoints
 from .config import default_jitter
@@ -81,9 +83,16 @@ class HeteroskedasticSGPR:
             params["likelihood"], self.sigma_sq_user
         )  # [N,] or [1,]
         Kuf = cross_covariance(self.gprior.kernel, iv, X, params["kernel"])
-        Kuu = cross_covariance(self.gprior.kernel, iv, iv, params["kernel"])
-        Kuu = default_jitter(Kuu)
+        Kuu = gram(self.gprior.kernel, iv, params["kernel"])
+        Kuu = default_jitter(Kuu, 10**3)
         L = linalg.cholesky(Kuu, lower=True)
+        # cond_fun = lambda x: jnp.any(jnp.isnan(x[0])) & (x[1] < 7)
+        # body_fun = lambda x: (
+        #     linalg.cholesky(default_jitter(Kuu, 10 ** x[1]), lower=True),
+        #     x[1] + 1,
+        # )
+        # L, i = lax.while_loop(cond_fun, body_fun, (L, 1))
+        checkify.checkify(jnp.all(jnp.isfinite(L)), "Cholesky failed")
         sigma = jnp.sqrt(sigma_sq)
 
         # Compute intermediate matrices
@@ -92,12 +101,13 @@ class HeteroskedasticSGPR:
         B = AAT + jnp.eye(AAT.shape[0])
         LB = linalg.cholesky(B, lower=True)
         return namedtuple("CommonTensors", ["A", "B", "LB", "AAT", "L"])(
-            A, B, LB, AAT, L
+            A, B, LB, AAT, L,
         )
 
     def logdet_term(self, params: Dict, common: NamedTuple):
         LB = common.LB
         AAT = common.AAT
+        A = common.A
         X, Y = self.train_data.X, self.train_data.Y
         outdim = Y.shape[1]
         kdiag = gram(self.gprior.kernel, X, params["kernel"], full_cov=False)
@@ -108,11 +118,13 @@ class HeteroskedasticSGPR:
             # important for correct computation with Gaussian likelihood
             sigma_sq = jnp.tile(sigma_sq, X.shape[0])
         # tr(KD^{-1})
-        trace_k = jnp.sum(kdiag / sigma_sq)
-        # tr(QD^{-1})
-        trace_q = jnp.trace(AAT)
-        # tr((K - Q)D^{-1})
-        trace = trace_k - trace_q
+        # trace_k = jnp.sum(kdiag / sigma_sq)
+        # # tr(QD^{-1})
+        # trace_q = jnp.trace(AAT)
+        # # tr((K - Q)D^{-1})
+        # trace = trace_k - trace_q
+
+        trace = jnp.sum(kdiag / sigma_sq - jnp.einsum('ij,ji->i', A.T, A))
 
         # log(det(B))
         log_det_b = 2 * jnp.sum(jnp.log(jnp.diag(LB)))

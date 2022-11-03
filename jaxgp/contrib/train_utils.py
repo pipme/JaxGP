@@ -25,7 +25,7 @@ def train_model(
     return_soln: Optional[bool] = False,
     neg_elbo: Optional[Callable] = None,
     jit: Optional[bool] = True,
-    logger = None,
+    logger=None,
     **kwargs,
 ) -> NamedTuple:
     if transforms_jitted is not None:
@@ -120,9 +120,9 @@ def train_model_separate(
             return r
         return v
 
-    diff_params = jax.tree_util.tree_multimap(diff_f, params, container)
+    diff_params = jax.tree_util.tree_map(diff_f, params, container)
     diff_params = return_non_empty(diff_params)
-    fixed_params = jax.tree_util.tree_multimap(fixed_f, params, container)
+    fixed_params = jax.tree_util.tree_map(fixed_f, params, container)
     fixed_params = return_non_empty(fixed_params)
 
     diff_raw_params = unconstrain_trans(diff_params)
