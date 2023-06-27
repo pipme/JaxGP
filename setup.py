@@ -22,7 +22,7 @@ CLASSIFIERS = [
     "Programming Language :: Python :: 3",
 ]
 
-INSTALL_REQUIRES = ["jax", "jaxlib", "numpy", "matplotlib", "optax", "jaxopt"]
+INSTALL_REQUIRES = ["jax", "jaxlib", "numpy", "matplotlib", "optax", "jaxopt", "treeo"]
 EXTRA_REQUIRE = {
     "test": ["pytest>=3.6"],
     "docs": ["sphinx>=3.3", "sphinx-book-theme", "myst_nb"],
