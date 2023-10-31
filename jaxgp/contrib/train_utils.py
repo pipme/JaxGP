@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, NamedTuple, Optional, Union
 import jax
 import jax.numpy as jnp
 import jaxopt
-from scalene import scalene_profiler
+# from scalene import scalene_profiler
 
 import jaxgp as jgp
 from jaxgp import GPR, SGPR, HeteroskedasticSGPR
