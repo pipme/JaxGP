@@ -66,7 +66,7 @@ class GPRPosterior:
     ) -> Tuple[Array, Array]:
         if X_test.ndim == 1:
             X_test = X_test[..., None]
-        X, Y = self.X, self.train_data.Y
+        X, Y = self.train_data.X, self.train_data.Y
         prior_distance = Y - self.gprior.mean(self.hyp_params)(X)
         weights = linalg.cho_solve((self.Lchol, True), prior_distance)
         prior_mean_at_test_inputs = self.gprior.mean(self.hyp_params)(X_test)
