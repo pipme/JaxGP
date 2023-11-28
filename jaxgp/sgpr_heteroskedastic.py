@@ -1,3 +1,5 @@
+import copy
+
 from collections import namedtuple
 from typing import Dict, NamedTuple, Optional, Tuple, Union
 
@@ -101,7 +103,11 @@ class HeteroskedasticSGPR:
         B = AAT + jnp.eye(AAT.shape[0])
         LB = linalg.cholesky(B, lower=True)
         return namedtuple("CommonTensors", ["A", "B", "LB", "AAT", "L"])(
-            A, B, LB, AAT, L,
+            A,
+            B,
+            LB,
+            AAT,
+            L,
         )
 
     def logdet_term(self, params: Dict, common: NamedTuple):
@@ -124,7 +130,7 @@ class HeteroskedasticSGPR:
         # # tr((K - Q)D^{-1})
         # trace = trace_k - trace_q
 
-        trace = jnp.sum(kdiag / sigma_sq - jnp.einsum('ij,ji->i', A.T, A))
+        trace = jnp.sum(kdiag / sigma_sq - jnp.einsum("ij,ji->i", A.T, A))
 
         # log(det(B))
         log_det_b = 2 * jnp.sum(jnp.log(jnp.diag(LB)))
@@ -228,3 +234,27 @@ class HeteroskedasticSGPR:
             self.sigma_sq_user,
             params_cache=params,
         )
+
+    # def __deepcopy__(self, memo):
+    #     cls = self.__class__
+    #     obj = cls.__new__(cls)
+    #     memo[id(self)] = obj
+    #     for k, v in self.__dict__.items():
+    #         if k == "hyp_prior":
+    #             hyp_prior_copy = {}
+    #             for hyp_name, prior in v.items():
+    #                 try:
+    #                     hyp_prior_copy[hyp_name] = copy.deepcopy(prior)
+    #                 except TypeError as e:
+    #                     # A special handling for tensorflow_probability distributions
+    #                     if (
+    #                         str(e)
+    #                         != "missing a required argument: 'distribution'"
+    #                     ):
+    #                         raise
+    #                     else:
+    #                         hyp_prior_copy[hyp_name] = prior.copy()
+    #             setattr(obj, k, hyp_prior_copy)
+    #         else:
+    #             setattr(obj, k, copy.deepcopy(v, memo))
+    #     return obj
