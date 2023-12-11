@@ -164,8 +164,7 @@ def euclidean_distance(X, Y=None):
         mu = X.mean(0)
         X -= mu
         Xs = jnp.sum(X**2, -1)
-        dist = -2 * X @ X.T
-        dist += Xs[:, None] + Xs[None, :]
+        dist = -2 * X @ X.T + Xs[:, None] + Xs[None, :]
     else:
         n = X.shape[0]
         m = Y.shape[0]
@@ -174,7 +173,6 @@ def euclidean_distance(X, Y=None):
         Y -= mu
         Xs = jnp.sum(X**2, -1)
         X2s = jnp.sum(Y**2, -1)
-        dist = -2 * X @ Y.T
-        dist += Xs[:, None] + X2s[None, :]
+        dist = -2 * X @ Y.T + Xs[:, None] + X2s[None, :]
     dist = jnp.maximum(dist, 0.)
     return dist

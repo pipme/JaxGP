@@ -30,6 +30,7 @@ INSTALL_REQUIRES = [
     "optax",
     "jaxopt",
     "treeo",
+    "torch",
     "tensorflow-probability==0.22.1",
 ]
 EXTRA_REQUIRE = {
