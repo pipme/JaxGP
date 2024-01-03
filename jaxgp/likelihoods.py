@@ -292,7 +292,7 @@ class HeteroskedasticGaussianVBMC(Likelihood):
 
     def compute(self, params: Dict, sigma_sq: Optional[Array] = None) -> Array:
         if sigma_sq is not None:
-            sigma_sq = sigma_sq.squeeze()
+            sigma_sq = jnp.atleast_1d(sigma_sq.squeeze())
             assert sigma_sq.ndim == 1
         if self.constant_add:
             noise_var = jnp.array(params["noise_add"])
