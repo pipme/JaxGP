@@ -23,8 +23,9 @@ CLASSIFIERS = [
 ]
 
 INSTALL_REQUIRES = [
-    "jax",
-    "jaxlib",
+    "jax==0.4.20",
+    "jaxlib==0.4.20",
+    "scipy==1.11.3",
     "numpy",
     "matplotlib",
     "optax",
