@@ -1,6 +1,6 @@
 # JaxGP
 
-A sparse Gaussian Process library written in Jax for Variational Sparse Bayesian Quadrature (VSBQ).
+A sparse Gaussian Process library written in Jax for [Variational Sparse Bayesian Quadrature (VSBQ)](https://github.com/acerbilab/vsbq).
 
 Heavily inspired by the following projects:
 
